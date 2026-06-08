@@ -30,3 +30,19 @@ def get_employee_by_id(db: Session, employee_id: str):
     return db.query(Employee).filter(
         Employee.employee_id == employee_id
     ).first()
+
+def update_employee(db: Session, employee_id: str, employee_data):
+    employee = db.query(Employee).filter(
+        Employee.employee_id == employee_id
+    ).first()
+
+    if not employee:
+        return None
+
+    employee.first_name = employee_data.first_name
+    employee.email = employee_data.email
+
+    db.commit()
+    db.refresh(employee)
+
+    return employee

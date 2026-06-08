@@ -2,8 +2,13 @@ from fastapi import FastAPI, Depends
 from sqlalchemy.orm import Session
 
 from app.database import SessionLocal
-from app.schemas import EmployeeCreate
-from app.crud import create_employee, get_employees, get_employee_by_id
+from app.schemas import EmployeeCreate, EmployeeUpdate
+from app.crud import (
+    create_employee,
+    get_employees,
+    get_employee_by_id,
+    update_employee
+)
 
 app = FastAPI()
 
@@ -55,4 +60,26 @@ def get_employee(
         "first_name": employee.first_name,
         "last_name": employee.last_name,
         "email": employee.email
+    }
+
+@app.put("/employees/{employee_id}")
+def edit_employee(
+    employee_id: str,
+    employee: EmployeeUpdate,
+    db: Session = Depends(get_db)
+):
+    updated_employee = update_employee(
+        db,
+        employee_id,
+        employee
+    )
+
+    if not updated_employee:
+        return {"message": "Employee not found"}
+
+    return {
+        "employee_id": str(updated_employee.employee_id),
+        "diginom_id": updated_employee.diginom_id,
+        "first_name": updated_employee.first_name,
+        "email": updated_employee.email
     }

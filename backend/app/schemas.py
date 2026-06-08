@@ -5,3 +5,7 @@ class EmployeeCreate(BaseModel):
     first_name: str
     last_name: str
     email: str
+
+class EmployeeUpdate(BaseModel):
+    first_name: str
+    email: str

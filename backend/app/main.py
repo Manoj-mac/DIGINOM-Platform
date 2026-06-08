@@ -1,18 +1,24 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
+from sqlalchemy.orm import Session
+
+from app.database import SessionLocal
 from app.schemas import EmployeeCreate
+from app.crud import create_employee
 
 app = FastAPI()
 
-@app.get("/")
-def home():
-    return {
-        "project": "DIGINOM",
-        "status": "Backend Running"
-    }
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
 
 @app.post("/employees")
-def create_employee(employee: EmployeeCreate):
-    return {
-        "message": "Employee Created",
-        "data": employee
-    }
+def add_employee(
+    employee: EmployeeCreate,
+    db: Session = Depends(get_db)
+):
+    return create_employee(db, employee)

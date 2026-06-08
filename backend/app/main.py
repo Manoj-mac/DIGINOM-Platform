@@ -7,7 +7,8 @@ from app.crud import (
     create_employee,
     get_employees,
     get_employee_by_id,
-    update_employee
+    update_employee,
+    delete_employee
 )
 
 app = FastAPI()
@@ -83,3 +84,15 @@ def edit_employee(
         "first_name": updated_employee.first_name,
         "email": updated_employee.email
     }
+
+@app.delete("/employees/{employee_id}")
+def remove_employee(
+    employee_id: str,
+    db: Session = Depends(get_db)
+):
+    result = delete_employee(db, employee_id)
+
+    if not result:
+        return {"message": "Employee not found"}
+
+    return result

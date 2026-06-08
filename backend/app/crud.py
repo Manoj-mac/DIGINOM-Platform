@@ -46,3 +46,16 @@ def update_employee(db: Session, employee_id: str, employee_data):
     db.refresh(employee)
 
     return employee
+
+def delete_employee(db: Session, employee_id: str):
+    employee = db.query(Employee).filter(
+        Employee.employee_id == employee_id
+    ).first()
+
+    if not employee:
+        return None
+
+    db.delete(employee)
+    db.commit()
+
+    return {"message": "Employee deleted successfully"}

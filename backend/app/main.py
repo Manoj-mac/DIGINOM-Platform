@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 
 from app.database import SessionLocal
 from app.schemas import EmployeeCreate
-from app.crud import create_employee, get_employees
+from app.crud import create_employee, get_employees, get_employee_by_id
 
 app = FastAPI()
 
@@ -38,3 +38,21 @@ def list_employees(db: Session = Depends(get_db)):
         }
         for emp in employees
     ]
+
+@app.get("/employees/{employee_id}")
+def get_employee(
+    employee_id: str,
+    db: Session = Depends(get_db)
+):
+    employee = get_employee_by_id(db, employee_id)
+
+    if not employee:
+        return {"message": "Employee not found"}
+
+    return {
+        "employee_id": str(employee.employee_id),
+        "diginom_id": employee.diginom_id,
+        "first_name": employee.first_name,
+        "last_name": employee.last_name,
+        "email": employee.email
+    }

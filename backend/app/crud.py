@@ -25,3 +25,8 @@ def create_employee(db: Session, employee):
 
 def get_employees(db: Session):
     return db.query(Employee).all()
+
+def get_employee_by_id(db: Session, employee_id: str):
+    return db.query(Employee).filter(
+        Employee.employee_id == employee_id
+    ).first()

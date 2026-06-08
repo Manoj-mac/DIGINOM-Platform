@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Depends
 from sqlalchemy.orm import Session
+from app.auth import router as auth_router
 
 from app.database import SessionLocal
 from app.schemas import EmployeeCreate, EmployeeUpdate
@@ -12,6 +13,7 @@ from app.crud import (
 )
 
 app = FastAPI()
+app.include_router(auth_router)
 
 
 def get_db():

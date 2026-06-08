@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 
 from app.database import SessionLocal
 from app.schemas import EmployeeCreate
-from app.crud import create_employee
+from app.crud import create_employee, get_employees
 
 app = FastAPI()
 
@@ -22,3 +22,19 @@ def add_employee(
     db: Session = Depends(get_db)
 ):
     return create_employee(db, employee)
+
+
+@app.get("/employees")
+def list_employees(db: Session = Depends(get_db)):
+    employees = get_employees(db)
+
+    return [
+        {
+            "employee_id": str(emp.employee_id),
+            "diginom_id": emp.diginom_id,
+            "first_name": emp.first_name,
+            "last_name": emp.last_name,
+            "email": emp.email
+        }
+        for emp in employees
+    ]

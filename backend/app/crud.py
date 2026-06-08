@@ -1,10 +1,22 @@
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 from app.models import Employee
 
 
+def generate_diginom_id(db: Session):
+    employee_count = db.query(Employee).count()
+
+    next_number = employee_count + 1
+
+    return f"DGN-IND-2026-{next_number:06d}"
+
+
 def create_employee(db: Session, employee):
+
+    diginom_id = generate_diginom_id(db)
+
     db_employee = Employee(
-        diginom_id=employee.diginom_id,
+        diginom_id=diginom_id,
         first_name=employee.first_name,
         last_name=employee.last_name,
         email=employee.email
@@ -26,10 +38,12 @@ def create_employee(db: Session, employee):
 def get_employees(db: Session):
     return db.query(Employee).all()
 
+
 def get_employee_by_id(db: Session, employee_id: str):
     return db.query(Employee).filter(
         Employee.employee_id == employee_id
     ).first()
+
 
 def update_employee(db: Session, employee_id: str, employee_data):
     employee = db.query(Employee).filter(
@@ -46,6 +60,7 @@ def update_employee(db: Session, employee_id: str, employee_data):
     db.refresh(employee)
 
     return employee
+
 
 def delete_employee(db: Session, employee_id: str):
     employee = db.query(Employee).filter(

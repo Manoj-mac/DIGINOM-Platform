@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Depends
 from sqlalchemy.orm import Session
 from app.auth import router as auth_router
+from app.dependencies import verify_token
 
 from app.database import SessionLocal
 from app.schemas import EmployeeCreate, EmployeeUpdate
@@ -33,7 +34,10 @@ def add_employee(
 
 
 @app.get("/employees")
-def list_employees(db: Session = Depends(get_db)):
+def list_employees(
+    db: Session = Depends(get_db),
+    token: dict = Depends(verify_token)
+):
     employees = get_employees(db)
 
     return [

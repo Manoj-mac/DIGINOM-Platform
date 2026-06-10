@@ -36,13 +36,22 @@ from app.audit_crud import (
     create_audit_log,
     get_audit_logs
 )
+from app.skill_crud import (
+    create_skill,
+    get_skills,
+    get_skill_by_id,
+    delete_skill,
+    update_skill
+)
 from app.schemas import (
     EmployeeCreate,
     EmployeeUpdate,
     CompanyCreate,
     CompanyUpdate,
     EmploymentHistoryCreate,
-    EmploymentHistoryUpdate
+    EmploymentHistoryUpdate,
+    SkillCreate,
+    SkillUpdate
 )
 
 from app.employment_history_crud import (
@@ -112,6 +121,24 @@ def add_employment_history(
     )
 
     return new_history
+
+@app.post("/skills")
+def add_skill(
+    skill: SkillCreate,
+    db: Session = Depends(get_db),
+    token: dict = Depends(admin_required)
+):
+    new_skill = create_skill(db, skill)
+
+    create_audit_log(
+        db,
+        token["sub"],
+        "CREATE",
+        "SKILL",
+        new_skill.skill_id
+    )
+
+    return new_skill
 # GET ALL EMPLOYEES (LOGGED-IN USERS)
 @app.get("/employees")
 def list_employees(
@@ -213,6 +240,26 @@ def get_history(
         }
 
     return history
+
+@app.get("/skills")
+def list_skills(
+    db: Session = Depends(get_db),
+    token: dict = Depends(verify_token)
+):
+    return get_skills(db)
+
+@app.get("/skills/{skill_id}")
+def get_skill(
+    skill_id: str,
+    db: Session = Depends(get_db),
+    token: dict = Depends(verify_token)
+):
+    skill = get_skill_by_id(db, skill_id)
+
+    if not skill:
+        return {"message": "Skill not found"}
+
+    return skill
 @app.put("/companies/{company_id}")
 def edit_company(
     company_id: str,
@@ -256,6 +303,32 @@ def edit_employee(
         "email": updated_employee.email
     }
 
+@app.put("/skills/{skill_id}")
+def edit_skill(
+    skill_id: str,
+    skill: SkillUpdate,
+    db: Session = Depends(get_db),
+    token: dict = Depends(admin_required)
+):
+    updated_skill = update_skill(
+        db,
+        skill_id,
+        skill
+    )
+
+    if not updated_skill:
+        return {"message": "Skill not found"}
+
+    create_audit_log(
+        db,
+        token["sub"],
+        "UPDATE",
+        "SKILL",
+        skill_id
+    )
+
+    return updated_skill
+
 
 # DELETE EMPLOYEE (ADMIN ONLY)
 @app.delete("/companies/{company_id}")
@@ -275,6 +348,27 @@ def remove_company(
         "DELETE",
         "COMPANY",
         company_id
+    )
+
+    return result
+
+@app.delete("/skills/{skill_id}")
+def remove_skill(
+    skill_id: str,
+    db: Session = Depends(get_db),
+    token: dict = Depends(admin_required)
+):
+    result = delete_skill(db, skill_id)
+
+    if not result:
+        return {"message": "Skill not found"}
+
+    create_audit_log(
+        db,
+        token["sub"],
+        "DELETE",
+        "SKILL",
+        skill_id
     )
 
     return result

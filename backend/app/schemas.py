@@ -54,3 +54,14 @@ class EmploymentHistoryUpdate(BaseModel):
     role: str
     end_date: str | None = None
     status: str
+
+class SkillCreate(BaseModel):
+    employee_id: str
+    skill_name: str
+    skill_level: str
+
+
+class SkillUpdate(BaseModel):
+    skill_name: str
+    skill_level: str
+    verified: bool

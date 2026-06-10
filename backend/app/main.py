@@ -600,6 +600,188 @@ def verified_employees(
         }
         for emp in employees
     ]
+@app.get("/dashboard-summary")
+def dashboard_summary(
+    db: Session = Depends(get_db),
+    token: dict = Depends(admin_required)
+):
+    return {
+        "employees": len(get_employees(db)),
+        "companies": len(get_companies(db)),
+        "skills": len(get_skills(db)),
+        "certifications": len(get_certifications(db)),
+        "documents": len(get_documents(db))
+    }
+
+@app.get("/search-employees")
+def search_employees(
+    name: str,
+    db: Session = Depends(get_db),
+    token: dict = Depends(verify_token)
+):
+    employees = get_employees(db)
+
+    results = []
+
+    for emp in employees:
+        if name.lower() in emp.first_name.lower():
+
+            results.append({
+                "employee_id":
+                str(emp.employee_id),
+
+                "name":
+                emp.first_name,
+
+                "email":
+                emp.email
+            })
+
+    return results
+
+@app.get("/search-skill")
+def search_skill(
+    skill: str,
+    db: Session = Depends(get_db),
+    token: dict = Depends(verify_token)
+):
+    skills = get_skills(db)
+
+    results = []
+
+    for s in skills:
+
+        if (
+            skill.lower() in s.skill_name.lower()
+            and s.verified
+        ):
+
+            employee = get_employee_by_id(
+                db,
+                str(s.employee_id)
+            )
+
+            if employee:
+
+                results.append({
+                    "employee_id":
+                    str(employee.employee_id),
+
+                    "employee_name":
+                    employee.first_name,
+
+                    "email":
+                    employee.email,
+
+                    "skill":
+                    s.skill_name,
+
+                    "level":
+                    s.skill_level
+                })
+
+    return results
+
+@app.get("/search-certification")
+def search_certification(
+    certification: str,
+    db: Session = Depends(get_db),
+    token: dict = Depends(verify_token)
+):
+    certifications = get_certifications(db)
+
+    results = []
+
+    for cert in certifications:
+
+        if (
+            certification.lower()
+            in cert.certification_name.lower()
+            and cert.verified
+        ):
+
+            employee = get_employee_by_id(
+                db,
+                str(cert.employee_id)
+            )
+
+            if employee:
+
+                results.append({
+                    "employee_id":
+                    str(employee.employee_id),
+
+                    "employee_name":
+                    employee.first_name,
+
+                    "email":
+                    employee.email,
+
+                    "certification":
+                    cert.certification_name
+                })
+
+    return results
+
+@app.get("/verified-talent")
+def verified_talent(
+    db: Session = Depends(get_db),
+    token: dict = Depends(verify_token)
+):
+    employees = get_employees(db)
+
+    results = []
+
+    for emp in employees:
+
+        skills = [
+            s for s in get_skills(db)
+            if str(s.employee_id)
+            == str(emp.employee_id)
+            and s.verified
+        ]
+
+        certifications = [
+            c for c in get_certifications(db)
+            if str(c.employee_id)
+            == str(emp.employee_id)
+            and c.verified
+        ]
+
+        documents = [
+            d for d in get_documents(db)
+            if str(d.employee_id)
+            == str(emp.employee_id)
+            and d.verified
+        ]
+
+        if (
+            skills
+            or certifications
+            or documents
+        ):
+
+            results.append({
+                "employee_id":
+                str(emp.employee_id),
+
+                "name":
+                emp.first_name,
+
+                "email":
+                emp.email,
+
+                "verified_skills":
+                len(skills),
+
+                "verified_certifications":
+                len(certifications),
+
+                "verified_documents":
+                len(documents)
+            })
+
+    return results
 
 @app.put("/companies/{company_id}")
 def edit_company(

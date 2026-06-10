@@ -80,3 +80,16 @@ class CertificationUpdate(BaseModel):
     issue_date: str
     expiry_date: str | None = None
     verified: bool
+
+class DocumentCreate(BaseModel):
+    employee_id: str
+    document_name: str
+    document_type: str
+    file_path: str
+
+
+class DocumentUpdate(BaseModel):
+    document_name: str
+    document_type: str
+    file_path: str
+    verified: bool

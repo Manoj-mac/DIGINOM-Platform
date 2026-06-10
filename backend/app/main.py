@@ -23,7 +23,9 @@ from app.schemas import (
     CompanyCreate,
     CompanyUpdate,
     CertificationCreate,
-    CertificationUpdate
+    CertificationUpdate,
+    DocumentCreate,
+    DocumentUpdate
 )
 
 from app.company_crud import (
@@ -68,6 +70,13 @@ from app.certification_crud import (
     get_certification_by_id,
     delete_certification,
     update_certification
+)
+
+from app.document_crud import (
+    create_document,
+    get_documents,
+    get_document_by_id,
+    delete_document
 )
 
 app = FastAPI()
@@ -170,6 +179,27 @@ def add_certification(
     )
 
     return new_certification
+
+@app.post("/documents")
+def add_document(
+    document: DocumentCreate,
+    db: Session = Depends(get_db),
+    token: dict = Depends(admin_required)
+):
+    new_document = create_document(
+        db,
+        document
+    )
+
+    create_audit_log(
+        db,
+        token["sub"],
+        "CREATE",
+        "DOCUMENT",
+        new_document["document_id"]
+    )
+
+    return new_document
 # GET ALL EMPLOYEES (LOGGED-IN USERS)
 @app.get("/employees")
 def list_employees(
@@ -316,6 +346,31 @@ def get_skill(
         return {"message": "Skill not found"}
 
     return skill
+
+@app.get("/documents")
+def list_documents(
+    db: Session = Depends(get_db),
+    token: dict = Depends(verify_token)
+):
+    return get_documents(db)
+
+@app.get("/documents/{document_id}")
+def get_document(
+    document_id: str,
+    db: Session = Depends(get_db),
+    token: dict = Depends(verify_token)
+):
+    document = get_document_by_id(
+        db,
+        document_id
+    )
+
+    if not document:
+        return {
+            "message": "Document not found"
+        }
+
+    return document
 @app.put("/companies/{company_id}")
 def edit_company(
     company_id: str,
@@ -481,6 +536,32 @@ def remove_certification(
         "DELETE",
         "CERTIFICATION",
         certification_id
+    )
+
+    return result
+
+@app.delete("/documents/{document_id}")
+def remove_document(
+    document_id: str,
+    db: Session = Depends(get_db),
+    token: dict = Depends(admin_required)
+):
+    result = delete_document(
+        db,
+        document_id
+    )
+
+    if not result:
+        return {
+            "message": "Document not found"
+        }
+
+    create_audit_log(
+        db,
+        token["sub"],
+        "DELETE",
+        "DOCUMENT",
+        document_id
     )
 
     return result

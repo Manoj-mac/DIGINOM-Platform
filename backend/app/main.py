@@ -55,7 +55,9 @@ from app.schemas import (
     EmploymentHistoryCreate,
     EmploymentHistoryUpdate,
     SkillCreate,
-    SkillUpdate
+    SkillUpdate,
+    VerificationRequestCreate,
+    VerificationDecision
 )
 
 from app.employment_history_crud import (
@@ -70,6 +72,7 @@ from app.certification_crud import (
     get_certification_by_id,
     delete_certification,
     update_certification
+    
 )
 
 from app.document_crud import (
@@ -87,8 +90,20 @@ from fastapi import UploadFile, File, Form
 import os
 import shutil
 
+from app.verification_crud import (
+    create_verification_request,
+    get_verification_requests,
+    get_verification_request_by_id
+)
+
+from app.certifications import Certification
+from datetime import datetime
+
 from fastapi.responses import FileResponse
 app = FastAPI()
+
+from app.skills import Skill
+from app.documents import Document
 
 app.include_router(auth_router)
 app.include_router(user_router)
@@ -291,6 +306,30 @@ def upload_document(
     )
 
     return new_document
+
+@app.post("/verification-requests")
+def add_verification_request(
+    request: VerificationRequestCreate,
+    db: Session = Depends(get_db),
+    token: dict = Depends(verify_token)
+):
+    new_request = (
+        create_verification_request(
+            db,
+            request,
+            token["sub"]
+        )
+    )
+
+    create_audit_log(
+        db,
+        token["sub"],
+        "CREATE",
+        "VERIFICATION_REQUEST",
+        new_request["verification_id"]
+    )
+
+    return new_request
 # GET ALL EMPLOYEES (LOGGED-IN USERS)
 @app.get("/employees")
 def list_employees(
@@ -491,6 +530,13 @@ def get_document(
         }
 
     return document
+
+@app.get("/verification-requests")
+def list_verification_requests(
+    db: Session = Depends(get_db),
+    token: dict = Depends(admin_required)
+):
+    return get_verification_requests(db)
 @app.put("/companies/{company_id}")
 def edit_company(
     company_id: str,
@@ -590,6 +636,68 @@ def edit_certification(
     )
 
     return updated_certification
+
+@app.put(
+    "/verification-requests/{verification_id}/approve"
+)
+def approve_verification(
+    verification_id: str,
+    db: Session = Depends(get_db),
+    token: dict = Depends(admin_required)
+):
+    request = get_verification_request_by_id(
+        db,
+        verification_id
+    )
+
+    if not request:
+        return {
+            "message":
+            "Verification request not found"
+        }
+
+    if request.verification_type == "CERTIFICATION":
+
+        certification = db.query(
+            Certification
+        ).filter(
+            Certification.certification_id ==
+            request.entity_id
+        ).first()
+
+        if certification:
+            certification.verified = True
+    elif request.verification_type == "DOCUMENT":
+
+     document = db.query(
+        Document
+    ).filter(
+        Document.document_id ==
+        request.entity_id
+    ).first()
+
+    if document:
+        document.verified = True
+
+    request.status = "APPROVED"
+    request.verified_by = token["sub"]
+    request.verified_at = datetime.utcnow()
+
+    db.commit()
+
+    create_audit_log(
+        db,
+        token["sub"],
+        "APPROVE",
+        "VERIFICATION_REQUEST",
+        verification_id
+    )
+
+    return {
+        "message":
+        "Verification approved successfully"
+    }
+
 
 # DELETE EMPLOYEE (ADMIN ONLY)
 @app.delete("/companies/{company_id}")

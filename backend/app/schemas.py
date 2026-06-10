@@ -93,3 +93,12 @@ class DocumentUpdate(BaseModel):
     document_type: str
     file_path: str
     verified: bool
+
+class VerificationRequestCreate(BaseModel):
+    employee_id: str
+    verification_type: str
+    entity_id: str
+
+
+class VerificationDecision(BaseModel):
+    status: str

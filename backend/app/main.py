@@ -537,6 +537,70 @@ def list_verification_requests(
     token: dict = Depends(admin_required)
 ):
     return get_verification_requests(db)
+@app.get("/employee-profile/{employee_id}")
+def employee_profile(
+    employee_id: str,
+    db: Session = Depends(get_db),
+    token: dict = Depends(verify_token)
+):
+    employee = get_employee_by_id(
+        db,
+        employee_id
+    )
+
+    if not employee:
+        return {
+            "message": "Employee not found"
+        }
+
+    skills = [
+        skill for skill in get_skills(db)
+        if str(skill.employee_id) == employee_id
+        and skill.verified
+    ]
+
+    certifications = [
+        cert for cert in get_certifications(db)
+        if str(cert.employee_id) == employee_id
+        and cert.verified
+    ]
+
+    documents = [
+        doc for doc in get_documents(db)
+        if str(doc.employee_id) == employee_id
+        and doc.verified
+    ]
+
+    return {
+        "employee": employee,
+        "verified_skills": skills,
+        "verified_certifications":
+            certifications,
+        "verified_documents":
+            documents
+    }
+
+@app.get("/verified-employees")
+def verified_employees(
+    db: Session = Depends(get_db),
+    token: dict = Depends(verify_token)
+):
+    employees = get_employees(db)
+
+    return [
+        {
+            "employee_id":
+            str(emp.employee_id),
+
+            "name":
+            emp.first_name,
+
+            "email":
+            emp.email
+        }
+        for emp in employees
+    ]
+
 @app.put("/companies/{company_id}")
 def edit_company(
     company_id: str,

@@ -79,6 +79,15 @@ from app.document_crud import (
     delete_document
 )
 
+from fastapi import UploadFile, File
+import shutil
+import os
+
+from fastapi import UploadFile, File, Form
+import os
+import shutil
+
+from fastapi.responses import FileResponse
 app = FastAPI()
 
 app.include_router(auth_router)
@@ -200,6 +209,88 @@ def add_document(
     )
 
     return new_document
+
+@app.post("/upload-file")
+def upload_file(
+    file: UploadFile = File(...)
+):
+    upload_dir = "uploads"
+
+    os.makedirs(
+        upload_dir,
+        exist_ok=True
+    )
+
+    file_path = os.path.join(
+        upload_dir,
+        file.filename
+    )
+
+    with open(
+        file_path,
+        "wb"
+    ) as buffer:
+        shutil.copyfileobj(
+            file.file,
+            buffer
+        )
+
+    return {
+        "filename": file.filename,
+        "file_path": file_path
+    }
+
+@app.post("/documents/upload")
+def upload_document(
+    employee_id: str = Form(...),
+    document_name: str = Form(...),
+    document_type: str = Form(...),
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    token: dict = Depends(admin_required)
+):
+    upload_dir = "uploads"
+
+    os.makedirs(
+        upload_dir,
+        exist_ok=True
+    )
+
+    file_path = os.path.join(
+        upload_dir,
+        file.filename
+    )
+
+    with open(
+        file_path,
+        "wb"
+    ) as buffer:
+        shutil.copyfileobj(
+            file.file,
+            buffer
+        )
+
+    document_data = DocumentCreate(
+        employee_id=employee_id,
+        document_name=document_name,
+        document_type=document_type,
+        file_path=file_path
+    )
+
+    new_document = create_document(
+        db,
+        document_data
+    )
+
+    create_audit_log(
+        db,
+        token["sub"],
+        "CREATE",
+        "DOCUMENT",
+        new_document["document_id"]
+    )
+
+    return new_document
 # GET ALL EMPLOYEES (LOGGED-IN USERS)
 @app.get("/employees")
 def list_employees(
@@ -271,6 +362,35 @@ def get_certification(
         }
 
     return certification
+
+@app.get("/documents/download/{document_id}")
+def download_document(
+    document_id: str,
+    db: Session = Depends(get_db),
+    token: dict = Depends(verify_token)
+):
+    document = get_document_by_id(
+        db,
+        document_id
+    )
+
+    if not document:
+        return {
+            "message": "Document not found"
+        }
+
+    create_audit_log(
+        db,
+        token["sub"],
+        "DOWNLOAD",
+        "DOCUMENT",
+        document_id
+    )
+
+    return FileResponse(
+        path=document.file_path,
+        filename=document.document_name
+    )
 @app.post("/companies")
 def add_company(
     company: CompanyCreate,

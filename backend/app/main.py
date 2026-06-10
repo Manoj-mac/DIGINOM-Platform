@@ -1,11 +1,14 @@
+from app.roles import admin_required
 from fastapi import FastAPI, Depends
 from sqlalchemy.orm import Session
+
 from app.auth import router as auth_router
 from app.dependencies import verify_token
 from app.user_routes import router as user_router
 
 from app.database import SessionLocal
-from app.schemas import EmployeeCreate, EmployeeUpdate
+
+
 from app.crud import (
     create_employee,
     get_employees,
@@ -14,10 +17,45 @@ from app.crud import (
     delete_employee
 )
 
+from app.schemas import (
+    EmployeeCreate,
+    EmployeeUpdate,
+    CompanyCreate,
+    CompanyUpdate
+)
+
+from app.company_crud import (
+    create_company,
+    get_companies,
+    get_company_by_id,
+    update_company,
+    delete_company
+)
+
+from app.audit_crud import (
+    create_audit_log,
+    get_audit_logs
+)
+from app.schemas import (
+    EmployeeCreate,
+    EmployeeUpdate,
+    CompanyCreate,
+    CompanyUpdate,
+    EmploymentHistoryCreate,
+    EmploymentHistoryUpdate
+)
+
+from app.employment_history_crud import (
+    create_employment_history,
+    get_employment_history,
+    get_employment_history_by_id
+)
+
 app = FastAPI()
 
 app.include_router(auth_router)
 app.include_router(user_router)
+
 
 def get_db():
     db = SessionLocal()
@@ -27,14 +65,54 @@ def get_db():
         db.close()
 
 
+# CREATE EMPLOYEE (ADMIN ONLY)
 @app.post("/employees")
 def add_employee(
     employee: EmployeeCreate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    token: dict = Depends(admin_required)
 ):
     return create_employee(db, employee)
 
+@app.post("/employees")
+def add_employee(
+    employee: EmployeeCreate,
+    db: Session = Depends(get_db),
+    token: dict = Depends(admin_required)
+):
+    new_employee = create_employee(db, employee)
 
+    create_audit_log(
+        db,
+        token["sub"],
+        "CREATE",
+        "EMPLOYEE",
+        new_employee["employee_id"]
+    )
+
+    return new_employee
+
+@app.post("/employment-history")
+def add_employment_history(
+    history: EmploymentHistoryCreate,
+    db: Session = Depends(get_db),
+    token: dict = Depends(admin_required)
+):
+    new_history = create_employment_history(
+        db,
+        history
+    )
+
+    create_audit_log(
+        db,
+        token["sub"],
+        "CREATE",
+        "EMPLOYMENT_HISTORY",
+        new_history.history_id
+    )
+
+    return new_history
+# GET ALL EMPLOYEES (LOGGED-IN USERS)
 @app.get("/employees")
 def list_employees(
     db: Session = Depends(get_db),
@@ -53,10 +131,13 @@ def list_employees(
         for emp in employees
     ]
 
+
+# GET SINGLE EMPLOYEE (LOGGED-IN USERS)
 @app.get("/employees/{employee_id}")
 def get_employee(
     employee_id: str,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    token: dict = Depends(verify_token)
 ):
     employee = get_employee_by_id(db, employee_id)
 
@@ -71,11 +152,93 @@ def get_employee(
         "email": employee.email
     }
 
+@app.get("/employment-history")
+def list_employment_history(
+    db: Session = Depends(get_db),
+    token: dict = Depends(verify_token)
+):
+    return get_employment_history(db)
+@app.post("/companies")
+def add_company(
+    company: CompanyCreate,
+    db: Session = Depends(get_db),
+    token: dict = Depends(admin_required)
+):
+    new_company = create_company(db, company)
+
+    create_audit_log(
+        db,
+        token["sub"],
+        "CREATE",
+        "COMPANY",
+        new_company.company_id
+    )
+
+    return new_company
+
+@app.get("/companies")
+def list_companies(
+    db: Session = Depends(get_db),
+    token: dict = Depends(verify_token)
+):
+    return get_companies(db)
+
+@app.get("/companies/{company_id}")
+def get_company(
+    company_id: str,
+    db: Session = Depends(get_db),
+    token: dict = Depends(verify_token)
+):
+    company = get_company_by_id(db, company_id)
+
+    if not company:
+        return {"message": "Company not found"}
+
+    return company
+
+@app.get("/employment-history/{history_id}")
+def get_history(
+    history_id: str,
+    db: Session = Depends(get_db),
+    token: dict = Depends(verify_token)
+):
+    history = get_employment_history_by_id(
+        db,
+        history_id
+    )
+
+    if not history:
+        return {
+            "message": "Employment history not found"
+        }
+
+    return history
+@app.put("/companies/{company_id}")
+def edit_company(
+    company_id: str,
+    company: CompanyUpdate,
+    db: Session = Depends(get_db),
+    token: dict = Depends(admin_required)
+):
+    updated_company = update_company(
+        db,
+        company_id,
+        company
+    )
+
+    if not updated_company:
+        return {"message": "Company not found"}
+
+    return updated_company
+
+
+# UPDATE EMPLOYEE (ADMIN ONLY)
 @app.put("/employees/{employee_id}")
 def edit_employee(
     employee_id: str,
     employee: EmployeeUpdate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    token: dict = Depends(admin_required)
 ):
     updated_employee = update_employee(
         db,
@@ -93,14 +256,32 @@ def edit_employee(
         "email": updated_employee.email
     }
 
-@app.delete("/employees/{employee_id}")
-def remove_employee(
-    employee_id: str,
-    db: Session = Depends(get_db)
+
+# DELETE EMPLOYEE (ADMIN ONLY)
+@app.delete("/companies/{company_id}")
+def remove_company(
+    company_id: str,
+    db: Session = Depends(get_db),
+    token: dict = Depends(admin_required)
 ):
-    result = delete_employee(db, employee_id)
+    result = delete_company(db, company_id)
 
     if not result:
-        return {"message": "Employee not found"}
+        return {"message": "Company not found"}
+
+    create_audit_log(
+        db,
+        token["sub"],
+        "DELETE",
+        "COMPANY",
+        company_id
+    )
 
     return result
+
+@app.get("/audit-logs")
+def list_audit_logs(
+    db: Session = Depends(get_db),
+    token: dict = Depends(admin_required)
+):
+    return get_audit_logs(db)

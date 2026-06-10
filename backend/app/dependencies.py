@@ -4,7 +4,7 @@ from jose import jwt, JWTError
 
 from app.security import SECRET_KEY, ALGORITHM
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/login")
 
 
 def verify_token(token: str = Depends(oauth2_scheme)):

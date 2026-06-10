@@ -65,3 +65,18 @@ class SkillUpdate(BaseModel):
     skill_name: str
     skill_level: str
     verified: bool
+
+class CertificationCreate(BaseModel):
+    employee_id: str
+    certification_name: str
+    issuer: str
+    issue_date: str
+    expiry_date: str | None = None
+
+
+class CertificationUpdate(BaseModel):
+    certification_name: str
+    issuer: str
+    issue_date: str
+    expiry_date: str | None = None
+    verified: bool

@@ -21,7 +21,9 @@ from app.schemas import (
     EmployeeCreate,
     EmployeeUpdate,
     CompanyCreate,
-    CompanyUpdate
+    CompanyUpdate,
+    CertificationCreate,
+    CertificationUpdate
 )
 
 from app.company_crud import (
@@ -58,6 +60,14 @@ from app.employment_history_crud import (
     create_employment_history,
     get_employment_history,
     get_employment_history_by_id
+)
+
+from app.certification_crud import (
+    create_certification,
+    get_certifications,
+    get_certification_by_id,
+    delete_certification,
+    update_certification
 )
 
 app = FastAPI()
@@ -139,6 +149,27 @@ def add_skill(
     )
 
     return new_skill
+
+@app.post("/certifications")
+def add_certification(
+    certification: CertificationCreate,
+    db: Session = Depends(get_db),
+    token: dict = Depends(admin_required)
+):
+    new_certification = create_certification(
+        db,
+        certification
+    )
+
+    create_audit_log(
+        db,
+        token["sub"],
+        "CREATE",
+        "CERTIFICATION",
+        new_certification["certification_id"]
+    )
+
+    return new_certification
 # GET ALL EMPLOYEES (LOGGED-IN USERS)
 @app.get("/employees")
 def list_employees(
@@ -185,6 +216,31 @@ def list_employment_history(
     token: dict = Depends(verify_token)
 ):
     return get_employment_history(db)
+
+@app.get("/certifications")
+def list_certifications(
+    db: Session = Depends(get_db),
+    token: dict = Depends(verify_token)
+):
+    return get_certifications(db)
+
+@app.get("/certifications/{certification_id}")
+def get_certification(
+    certification_id: str,
+    db: Session = Depends(get_db),
+    token: dict = Depends(verify_token)
+):
+    certification = get_certification_by_id(
+        db,
+        certification_id
+    )
+
+    if not certification:
+        return {
+            "message": "Certification not found"
+        }
+
+    return certification
 @app.post("/companies")
 def add_company(
     company: CompanyCreate,
@@ -329,6 +385,36 @@ def edit_skill(
 
     return updated_skill
 
+@app.put("/certifications/{certification_id}")
+def edit_certification(
+    certification_id: str,
+    certification: CertificationUpdate,
+    db: Session = Depends(get_db),
+    token: dict = Depends(admin_required)
+):
+    updated_certification = (
+        update_certification(
+            db,
+            certification_id,
+            certification
+        )
+    )
+
+    if not updated_certification:
+        return {
+            "message":
+            "Certification not found"
+        }
+
+    create_audit_log(
+        db,
+        token["sub"],
+        "UPDATE",
+        "CERTIFICATION",
+        certification_id
+    )
+
+    return updated_certification
 
 # DELETE EMPLOYEE (ADMIN ONLY)
 @app.delete("/companies/{company_id}")
@@ -369,6 +455,32 @@ def remove_skill(
         "DELETE",
         "SKILL",
         skill_id
+    )
+
+    return result
+
+@app.delete("/certifications/{certification_id}")
+def remove_certification(
+    certification_id: str,
+    db: Session = Depends(get_db),
+    token: dict = Depends(admin_required)
+):
+    result = delete_certification(
+        db,
+        certification_id
+    )
+
+    if not result:
+        return {
+            "message": "Certification not found"
+        }
+
+    create_audit_log(
+        db,
+        token["sub"],
+        "DELETE",
+        "CERTIFICATION",
+        certification_id
     )
 
     return result

@@ -1,10 +1,14 @@
 import { useEffect, useState } from "react";
 import api from "../api/api";
 import Sidebar from "../components/Sidebar";
+import { useNavigate } from "react-router-dom";
+
 
 function Employees() {
 
     const [employees, setEmployees] = useState([]);
+    const navigate = useNavigate();
+
 
     useEffect(() => {
 
@@ -81,6 +85,17 @@ function Employees() {
 
                 <h1>Employees</h1>
 
+                <button
+                    onClick={() =>
+                        navigate("/employees/add")
+                    }
+                >
+                    Add Employee
+                </button>
+
+                <br />
+                <br />
+
                 <table border="1">
 
                     <thead>
@@ -129,6 +144,18 @@ function Employees() {
                                     </td>
 
                                     <td>
+
+                                        <button
+                                            onClick={() =>
+                                                navigate(
+                                                    `/employees/edit/${employee.employee_id}`
+                                                )
+                                            }
+                                        >
+                                            Edit
+                                        </button>
+
+                                        {" "}
 
                                         <button
                                             onClick={() =>

@@ -102,3 +102,20 @@ class VerificationRequestCreate(BaseModel):
 
 class VerificationDecision(BaseModel):
     status: str
+
+class ShortlistCreate(BaseModel):
+    employee_id: str
+
+class RecruiterNoteCreate(BaseModel):
+    employee_id: str
+    note: str
+
+class PipelineCreate(BaseModel):
+    employee_id: str
+    remarks: str | None = None
+
+
+class PipelineUpdate(BaseModel):
+    stage: str
+    remarks: str | None = None
+    

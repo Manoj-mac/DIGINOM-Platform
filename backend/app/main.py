@@ -7,7 +7,7 @@ from app.dependencies import verify_token
 from app.user_routes import router as user_router
 
 from app.database import SessionLocal
-
+from datetime import datetime
 
 from app.crud import (
     create_employee,
@@ -57,7 +57,9 @@ from app.schemas import (
     SkillCreate,
     SkillUpdate,
     VerificationRequestCreate,
-    VerificationDecision
+    VerificationDecision,
+    PipelineCreate,
+    PipelineUpdate,
 )
 
 from app.employment_history_crud import (
@@ -104,6 +106,28 @@ app = FastAPI()
 
 from app.skills import Skill
 from app.documents import Document
+
+from app.schemas import ShortlistCreate
+from app.shortlist_crud import (
+    create_shortlist,
+    get_shortlists
+)
+from app.schemas import RecruiterNoteCreate
+from app.recruiter_notes_crud import (
+    create_note,
+    get_notes
+)
+
+from app.interview_pipeline_crud import (
+    create_pipeline,
+    get_pipelines,
+    get_pipeline_by_id,
+    update_pipeline_stage
+)
+
+from app.interview_pipeline import InterviewPipeline
+from datetime import datetime
+
 
 app.include_router(auth_router)
 app.include_router(user_router)
@@ -330,6 +354,61 @@ def add_verification_request(
     )
 
     return new_request
+
+@app.post("/shortlists")
+def shortlist_candidate(
+    shortlist: ShortlistCreate,
+    db: Session = Depends(get_db),
+    token: dict = Depends(verify_token)
+):
+    result = create_shortlist(
+        db,
+        token["sub"],
+        shortlist.employee_id
+    )
+
+    create_audit_log(
+        db,
+        token["sub"],
+        "SHORTLIST",
+        "EMPLOYEE",
+        shortlist.employee_id
+    )
+
+    return result
+
+@app.post("/recruiter-notes")
+def add_note(
+    note: RecruiterNoteCreate,
+    db: Session = Depends(get_db),
+    token: dict = Depends(verify_token)
+):
+    return create_note(
+        db,
+        token["sub"],
+        note.employee_id,
+        note.note
+    )
+
+@app.post("/pipeline")
+def add_pipeline(
+    pipeline: PipelineCreate,
+    db: Session = Depends(get_db),
+    token: dict = Depends(verify_token)
+):
+    result = create_pipeline(
+        db,
+        token["sub"],
+        pipeline.employee_id,
+        pipeline.remarks
+    )
+
+    return {
+        "pipeline_id": str(result.pipeline_id),
+        "employee_id": result.employee_id,
+        "stage": result.stage,
+        "remarks": result.remarks
+    }
 # GET ALL EMPLOYEES (LOGGED-IN USERS)
 @app.get("/employees")
 def list_employees(
@@ -430,6 +509,97 @@ def download_document(
         path=document.file_path,
         filename=document.document_name
     )
+@app.get("/employee-experience/{employee_id}")
+def employee_experience(
+    employee_id: str,
+    db: Session = Depends(get_db),
+    token: dict = Depends(verify_token)
+):
+    histories = get_employment_history(db)
+
+    total_days = 0
+
+    for history in histories:
+
+        if str(history.employee_id) == employee_id:
+
+            start = history.start_date
+
+            end = (
+                history.end_date
+                if history.end_date
+                else datetime.utcnow().date()
+            )
+
+            total_days += (
+                end - start
+            ).days
+
+    years = round(
+        total_days / 365,
+        2
+    )
+
+    return {
+        "employee_id": employee_id,
+        "experience_years": years
+    }
+
+@app.get("/search-experience")
+def search_experience(
+    minimum_years: float,
+    db: Session = Depends(get_db),
+    token: dict = Depends(verify_token)
+):
+    employees = get_employees(db)
+
+    results = []
+
+    for emp in employees:
+
+        histories = get_employment_history(db)
+
+        total_days = 0
+
+        for history in histories:
+
+            if str(history.employee_id) == str(emp.employee_id):
+
+                start = history.start_date
+
+                end = (
+                    history.end_date
+                    if history.end_date
+                    else datetime.utcnow().date()
+                )
+
+                total_days += (
+                    end - start
+                ).days
+
+        years = round(
+            total_days / 365,
+            2
+        )
+
+        if years >= minimum_years:
+
+            results.append({
+                "employee_id":
+                str(emp.employee_id),
+
+                "name":
+                emp.first_name,
+
+                "email":
+                emp.email,
+
+                "experience_years":
+                years
+            })
+
+    return results
+
 @app.post("/companies")
 def add_company(
     company: CompanyCreate,
@@ -783,6 +953,195 @@ def verified_talent(
 
     return results
 
+@app.get("/search-company")
+def search_company(
+    company_name: str,
+    db: Session = Depends(get_db),
+    token: dict = Depends(verify_token)
+):
+    companies = get_companies(db)
+
+    company_ids = []
+
+    for company in companies:
+        if company_name.lower() in company.company_name.lower():
+            company_ids.append(
+                str(company.company_id)
+            )
+
+    results = []
+
+    histories = get_employment_history(db)
+
+    for history in histories:
+
+        if str(history.company_id) in company_ids:
+
+            employee = get_employee_by_id(
+                db,
+                str(history.employee_id)
+            )
+
+            if employee:
+
+                results.append({
+                    "employee_id":
+                    str(employee.employee_id),
+
+                    "employee_name":
+                    employee.first_name,
+
+                    "email":
+                    employee.email,
+
+                    "role":
+                    history.role,
+
+                    "status":
+                    history.status
+                })
+
+    return results
+
+@app.get("/candidate-ranking")
+def candidate_ranking(
+    db: Session = Depends(get_db),
+    token: dict = Depends(verify_token)
+):
+    employees = get_employees(db)
+
+    rankings = []
+
+    for emp in employees:
+
+        score = 0
+
+        skills = [
+            s for s in get_skills(db)
+            if str(s.employee_id) ==
+            str(emp.employee_id)
+            and s.verified
+        ]
+
+        score += len(skills) * 20
+
+        certifications = [
+            c for c in get_certifications(db)
+            if str(c.employee_id) ==
+            str(emp.employee_id)
+            and c.verified
+        ]
+
+        score += len(certifications) * 30
+
+        documents = [
+            d for d in get_documents(db)
+            if str(d.employee_id) ==
+            str(emp.employee_id)
+            and d.verified
+        ]
+
+        score += len(documents) * 10
+
+        histories = get_employment_history(db)
+
+        total_days = 0
+
+        for history in histories:
+
+            if str(history.employee_id) == str(emp.employee_id):
+
+                start = history.start_date
+
+                end = (
+                    history.end_date
+                    if history.end_date
+                    else datetime.utcnow().date()
+                )
+
+                total_days += (
+                    end - start
+                ).days
+
+        years = round(
+            total_days / 365,
+            2
+        )
+
+        if years >= 2:
+            score += 20
+
+        rankings.append({
+            "employee_id":
+            str(emp.employee_id),
+
+            "name":
+            emp.first_name,
+
+            "email":
+            emp.email,
+
+            "experience_years":
+            years,
+
+            "score":
+            score
+        })
+
+    rankings.sort(
+        key=lambda x: x["score"],
+        reverse=True
+    )
+
+    return rankings
+
+@app.get("/shortlists")
+def my_shortlists(
+    db: Session = Depends(get_db),
+    token: dict = Depends(verify_token)
+):
+    return get_shortlists(
+        db,
+        token["sub"]
+    )
+
+@app.get("/recruiter-notes")
+def list_notes(
+    db: Session = Depends(get_db),
+    token: dict = Depends(verify_token)
+):
+    return get_notes(
+        db,
+        token["sub"]
+    )
+
+@app.get("/pipeline-summary")
+def pipeline_summary(
+    db: Session = Depends(get_db),
+    token: dict = Depends(verify_token)
+):
+    pipelines = get_pipelines(db)
+
+    return {
+        "shortlisted":
+        len([p for p in pipelines if p.stage == "SHORTLISTED"]),
+
+        "screening":
+        len([p for p in pipelines if p.stage == "SCREENING"]),
+
+        "technical":
+        len([p for p in pipelines if p.stage == "TECHNICAL"]),
+
+        "hr":
+        len([p for p in pipelines if p.stage == "HR"]),
+
+        "offer":
+        len([p for p in pipelines if p.stage == "OFFER"]),
+
+        "hired":
+        len([p for p in pipelines if p.stage == "HIRED"])
+    }
+
 @app.put("/companies/{company_id}")
 def edit_company(
     company_id: str,
@@ -944,6 +1303,38 @@ def approve_verification(
         "Verification approved successfully"
     }
 
+@app.put("/pipeline/{pipeline_id}")
+def move_pipeline(
+    pipeline_id: str,
+    pipeline: PipelineUpdate,
+    db: Session = Depends(get_db),
+    token: dict = Depends(verify_token)
+):
+    result = update_pipeline_stage(
+        db,
+        pipeline_id,
+        pipeline.stage,
+        pipeline.remarks
+    )
+
+    if not result:
+        return {
+            "message": "Pipeline not found"
+        }
+
+    create_audit_log(
+        db,
+        token["sub"],
+        "PIPELINE_UPDATE",
+        "INTERVIEW_PIPELINE",
+        pipeline_id
+    )
+
+    return {
+        "pipeline_id": str(result.pipeline_id),
+        "stage": result.stage,
+        "remarks": result.remarks
+    }
 
 # DELETE EMPLOYEE (ADMIN ONLY)
 @app.delete("/companies/{company_id}")

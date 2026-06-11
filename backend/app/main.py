@@ -103,8 +103,20 @@ from app.verification_crud import (
 from app.certifications import Certification
 from datetime import datetime
 
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 app = FastAPI()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+    "http://localhost:5173",
+    "http://127.0.0.1:5173"
+],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 from app.skills import Skill
 from app.documents import Document
@@ -137,6 +149,8 @@ from app.job_requisition_crud import (
 
 from app.interview_pipeline import InterviewPipeline
 from datetime import datetime
+
+
 
 
 app.include_router(auth_router)
@@ -1319,6 +1333,20 @@ def match_candidates(
 
     return matches
 
+@app.get("/dashboard/stats")
+def dashboard_stats(
+    db: Session = Depends(get_db),
+    token: dict = Depends(verify_token)
+):
+    return {
+        "employees": len(get_employees(db)),
+        "skills": len(get_skills(db)),
+        "certifications": len(get_certifications(db)),
+        "documents": len(get_documents(db)),
+        "jobs": len(get_jobs(db)),
+        "verifications": len(get_verification_requests(db))
+    }
+
 @app.put("/companies/{company_id}")
 def edit_company(
     company_id: str,
@@ -1648,3 +1676,27 @@ def remove_job(
         db,
         job_id
     )
+@app.delete("/employees/{employee_id}")
+def remove_employee(
+    employee_id: str,
+    db: Session = Depends(get_db),
+    token: dict = Depends(admin_required)
+):
+    employee = get_employee_by_id(
+        db,
+        employee_id
+    )
+
+    if not employee:
+        return {
+            "message": "Employee not found"
+        }
+
+    delete_employee(
+        db,
+        employee_id
+    )
+
+    return {
+        "message": "Employee deleted successfully"
+    }

@@ -4,13 +4,48 @@ from app.models import Employee
 
 
 def generate_diginom_id(db: Session):
-    employee_count = db.query(Employee).count()
 
-    next_number = employee_count + 1
+    employees = db.query(Employee).all()
+
+    max_number = 0
+
+    for employee in employees:
+
+        try:
+            number = int(
+                employee.diginom_id.split("-")[-1]
+            )
+
+            if number > max_number:
+                max_number = number
+
+        except:
+            pass
+
+    next_number = max_number + 1
+    print("NEW DIGINOM ID:", next_number)
 
     return f"DGN-IND-2026-{next_number:06d}"
+    
 
+    latest_employee = (
+        db.query(Employee)
+        .order_by(Employee.diginom_id.desc())
+        .first()
+    )
 
+    if not latest_employee:
+        return "DGN-IND-2026-000001"
+
+    last_number = int(
+        latest_employee.diginom_id.split("-")[-1]
+    )
+
+    next_number = last_number + 1
+
+    return (
+        f"DGN-IND-2026-{next_number:06d}"
+    )
 def create_employee(db: Session, employee):
 
     diginom_id = generate_diginom_id(db)

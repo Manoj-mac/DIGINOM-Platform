@@ -60,6 +60,8 @@ from app.schemas import (
     VerificationDecision,
     PipelineCreate,
     PipelineUpdate,
+    JobCreate,
+    JobUpdate,
 )
 
 from app.employment_history_crud import (
@@ -123,6 +125,14 @@ from app.interview_pipeline_crud import (
     get_pipelines,
     get_pipeline_by_id,
     update_pipeline_stage
+)
+
+from app.job_requisition_crud import (
+    create_job,
+    get_jobs,
+    get_job_by_id,
+    update_job_status,
+    delete_job
 )
 
 from app.interview_pipeline import InterviewPipeline
@@ -617,6 +627,38 @@ def add_company(
     )
 
     return new_company
+
+@app.post("/jobs")
+def add_job(
+    job: JobCreate,
+    db: Session = Depends(get_db),
+    token: dict = Depends(verify_token)
+):
+    result = create_job(
+        db,
+        token["sub"],
+        job.job_title,
+        job.required_skill,
+        job.minimum_experience,
+        job.openings
+    )
+
+    create_audit_log(
+        db,
+        token["sub"],
+        "CREATE",
+        "JOB_REQUISITION",
+        str(result.job_id)
+    )
+
+    return {
+        "job_id": str(result.job_id),
+        "job_title": result.job_title,
+        "required_skill": result.required_skill,
+        "minimum_experience": float(result.minimum_experience),
+        "openings": result.openings,
+        "status": result.status
+    }
 
 @app.get("/companies")
 def list_companies(
@@ -1142,6 +1184,141 @@ def pipeline_summary(
         len([p for p in pipelines if p.stage == "HIRED"])
     }
 
+@app.get("/jobs")
+def list_jobs(
+    db: Session = Depends(get_db),
+    token: dict = Depends(verify_token)
+):
+    return get_jobs(db)
+
+@app.get("/jobs/{job_id}")
+def get_job(
+    job_id: str,
+    db: Session = Depends(get_db),
+    token: dict = Depends(verify_token)
+):
+    job = get_job_by_id(
+        db,
+        job_id
+    )
+
+    if not job:
+        return {
+            "message": "Job not found"
+        }
+
+    return job
+
+@app.get("/jobs/{job_id}/matches")
+def match_candidates(
+    job_id: str,
+    db: Session = Depends(get_db),
+    token: dict = Depends(verify_token)
+):
+    job = get_job_by_id(
+        db,
+        job_id
+    )
+
+    if not job:
+        return {
+            "message": "Job not found"
+        }
+
+    employees = get_employees(db)
+
+    matches = []
+
+    for employee in employees:
+
+        score = 0
+
+        employee_skills = [
+            s for s in get_skills(db)
+            if str(s.employee_id)
+            == str(employee.employee_id)
+        ]
+
+        for skill in employee_skills:
+
+            if (
+                skill.skill_name.lower()
+                ==
+                job.required_skill.lower()
+            ):
+                score += 50
+
+                if skill.verified:
+                    score += 20
+
+        employee_certifications = [
+            c for c in get_certifications(db)
+            if str(c.employee_id)
+            == str(employee.employee_id)
+        ]
+
+        for cert in employee_certifications:
+
+            if cert.verified:
+                score += 10
+
+        histories = get_employment_history(db)
+
+        total_days = 0
+
+        for history in histories:
+
+            if str(history.employee_id) == str(employee.employee_id):
+
+                start = history.start_date
+
+                end = (
+                    history.end_date
+                    if history.end_date
+                    else datetime.utcnow().date()
+                )
+
+                total_days += (
+                    end - start
+                ).days
+
+        experience_years = round(
+            total_days / 365,
+            2
+        )
+
+        if (
+            experience_years >=
+            float(job.minimum_experience)
+        ):
+            score += 20
+
+        if score > 0:
+
+            matches.append({
+                "employee_id":
+                str(employee.employee_id),
+
+                "name":
+                employee.first_name,
+
+                "email":
+                employee.email,
+
+                "experience_years":
+                experience_years,
+
+                "match_score":
+                score
+            })
+
+    matches.sort(
+        key=lambda x: x["match_score"],
+        reverse=True
+    )
+
+    return matches
+
 @app.put("/companies/{company_id}")
 def edit_company(
     company_id: str,
@@ -1336,6 +1513,29 @@ def move_pipeline(
         "remarks": result.remarks
     }
 
+@app.put("/jobs/{job_id}")
+def update_job(
+    job_id: str,
+    job: JobUpdate,
+    db: Session = Depends(get_db),
+    token: dict = Depends(verify_token)
+):
+    result = update_job_status(
+        db,
+        job_id,
+        job.status
+    )
+
+    if not result:
+        return {
+            "message": "Job not found"
+        }
+
+    return {
+        "job_id": str(result.job_id),
+        "status": result.status
+    }
+
 # DELETE EMPLOYEE (ADMIN ONLY)
 @app.delete("/companies/{company_id}")
 def remove_company(
@@ -1437,3 +1637,14 @@ def list_audit_logs(
     token: dict = Depends(admin_required)
 ):
     return get_audit_logs(db)
+
+@app.delete("/jobs/{job_id}")
+def remove_job(
+    job_id: str,
+    db: Session = Depends(get_db),
+    token: dict = Depends(admin_required)
+):
+    return delete_job(
+        db,
+        job_id
+    )

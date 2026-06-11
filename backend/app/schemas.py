@@ -118,4 +118,15 @@ class PipelineCreate(BaseModel):
 class PipelineUpdate(BaseModel):
     stage: str
     remarks: str | None = None
+
+    
+class JobCreate(BaseModel):
+    job_title: str
+    required_skill: str
+    minimum_experience: float
+    openings: int
+
+
+class JobUpdate(BaseModel):
+    status: str
     

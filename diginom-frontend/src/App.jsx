@@ -9,6 +9,7 @@ import AddSkill from "./pages/AddSkill";
 import Certifications from "./pages/Certifications";
 import AddCertification from "./pages/AddCertification";
 import EditCertification from "./pages/EditCertification";
+import Documents from "./pages/Documents";
 function App() {
   return (
     <BrowserRouter>
@@ -47,6 +48,10 @@ function App() {
         <Route
           path="/certifications/edit/:certificationId"
           element={<EditCertification />}
+        />
+        <Route
+          path="/documents"
+          element={<Documents />}
         />
       </Routes>
     </BrowserRouter>

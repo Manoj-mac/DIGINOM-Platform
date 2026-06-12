@@ -1,26 +1,136 @@
-import { Link } from "react-router-dom";
+import {
+    Drawer,
+    List,
+    ListItem,
+    ListItemButton,
+    ListItemIcon,
+    ListItemText,
+    Toolbar,
+    Typography,
+    Box
+} from "@mui/material";
+
+import {
+    Dashboard,
+    People,
+    Psychology,
+    WorkspacePremium,
+    Description,
+    Business,
+    Work,
+    Settings
+} from "@mui/icons-material";
+
+import { useNavigate } from "react-router-dom";
+
+const drawerWidth = 240;
 
 function Sidebar() {
+
+    const navigate = useNavigate();
+
+    const menuItems = [
+        {
+            text: "Dashboard",
+            icon: <Dashboard />,
+            path: "/dashboard"
+        },
+        {
+            text: "Employees",
+            icon: <People />,
+            path: "/employees"
+        },
+        {
+            text: "Skills",
+            icon: <Psychology />,
+            path: "/skills"
+        },
+        {
+            text: "Certifications",
+            icon: <WorkspacePremium />,
+            path: "/certifications"
+        },
+        {
+            text: "Documents",
+            icon: <Description />,
+            path: "/documents"
+        },
+        {
+            text: "Companies",
+            icon: <Business />,
+            path: "/companies"
+        },
+        {
+            text: "Jobs",
+            icon: <Work />,
+            path: "/jobs"
+        },
+        {
+            text: "Settings",
+            icon: <Settings />,
+            path: "/settings"
+        }
+    ];
+
     return (
-        <div
-            style={{
-                width: "250px",
-                height: "100vh",
-                background: "#1e293b",
-                color: "white",
-                padding: "20px"
+        <Drawer
+            variant="permanent"
+            sx={{
+                width: drawerWidth,
+                flexShrink: 0,
+                "& .MuiDrawer-paper": {
+                    width: drawerWidth,
+                    boxSizing: "border-box"
+                }
             }}
         >
-            <h2>DIGINOM</h2>
+            <Toolbar>
 
-            <p><Link to="/dashboard">Dashboard</Link></p>
-            <p><Link to="/employees">Employees</Link></p>
-            <p><Link to="/skills">Skills</Link></p>
-            <p><Link to="/certifications">Certifications</Link></p>
-            <p><Link to="/documents">Documents</Link></p>
-            <p><Link to="/jobs">Jobs</Link></p>
-            <p><Link to="/verification">Verification</Link></p>
-        </div>
+                <Typography
+                    variant="h6"
+                    fontWeight="bold"
+                >
+                    DIGINOM
+                </Typography>
+
+            </Toolbar>
+
+            <Box sx={{ overflow: "auto" }}>
+
+                <List>
+
+                    {menuItems.map((item) => (
+
+                        <ListItem
+                            key={item.text}
+                            disablePadding
+                        >
+
+                            <ListItemButton
+                                onClick={() =>
+                                    navigate(item.path)
+                                }
+                            >
+
+                                <ListItemIcon>
+                                    {item.icon}
+                                </ListItemIcon>
+
+                                <ListItemText
+                                    primary={item.text}
+                                />
+
+                            </ListItemButton>
+
+                        </ListItem>
+
+                    ))}
+
+                </List>
+
+            </Box>
+
+        </Drawer>
     );
 }
 

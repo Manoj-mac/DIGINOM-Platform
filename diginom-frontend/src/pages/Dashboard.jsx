@@ -1,6 +1,12 @@
 import { useEffect, useState } from "react";
+import {
+    Box,
+    Typography
+} from "@mui/material";
+
 import api from "../api/api";
 import Sidebar from "../components/Sidebar";
+import DashboardCard from "../components/DashboardCard";
 
 function Dashboard() {
 
@@ -39,29 +45,81 @@ function Dashboard() {
     }, []);
 
     return (
-        <div style={{ display: "flex" }}>
+
+        <Box sx={{ display: "flex" }}>
 
             <Sidebar />
 
-            <div style={{ padding: "20px" }}>
+            <Box
+                component="main"
+                sx={{
+                    flexGrow: 1,
+                    p: 4,
+                    backgroundColor: "#f5f7fa",
+                    minHeight: "100vh"
+                }}
+            >
 
-                <h1>DIGINOM Dashboard 🚀</h1>
+                <Typography
+                    variant="h4"
+                    fontWeight="bold"
+                    gutterBottom
+                >
+                    DIGINOM Dashboard 🚀
+                </Typography>
 
-                <h3>Total Employees: {stats.employees}</h3>
+                <Typography
+                    variant="body1"
+                    color="text.secondary"
+                    sx={{ mb: 4 }}
+                >
+                    Talent Intelligence & Verification Platform
+                </Typography>
 
-                <h3>Total Skills: {stats.skills}</h3>
+                <Box
+                    sx={{
+                        display: "grid",
+                        gridTemplateColumns:
+                            "repeat(auto-fit, minmax(250px, 1fr))",
+                        gap: 3
+                    }}
+                >
 
-                <h3>Total Certifications: {stats.certifications}</h3>
+                    <DashboardCard
+                        title="Employees"
+                        value={stats.employees || 0}
+                    />
 
-                <h3>Total Documents: {stats.documents}</h3>
+                    <DashboardCard
+                        title="Skills"
+                        value={stats.skills || 0}
+                    />
 
-                <h3>Total Jobs: {stats.jobs}</h3>
+                    <DashboardCard
+                        title="Certifications"
+                        value={stats.certifications || 0}
+                    />
 
-                <h3>Total Verifications: {stats.verifications}</h3>
+                    <DashboardCard
+                        title="Documents"
+                        value={stats.documents || 0}
+                    />
 
-            </div>
+                    <DashboardCard
+                        title="Jobs"
+                        value={stats.jobs || 0}
+                    />
 
-        </div>
+                    <DashboardCard
+                        title="Verifications"
+                        value={stats.verifications || 0}
+                    />
+
+                </Box>
+
+            </Box>
+
+        </Box>
     );
 }
 

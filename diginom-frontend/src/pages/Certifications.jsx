@@ -19,17 +19,16 @@ import api from "../api/api";
 import Sidebar from "../components/Sidebar";
 import { useNavigate } from "react-router-dom";
 
+function Certifications() {
 
-function Employees() {
-
-    const [employees, setEmployees] = useState([]);
+    const [certifications, setCertifications] = useState([]);
     const [search, setSearch] = useState("");
-    const navigate = useNavigate();
 
+    const navigate = useNavigate();
 
     useEffect(() => {
 
-        const fetchEmployees = async () => {
+        const fetchCertifications = async () => {
 
             try {
 
@@ -38,7 +37,7 @@ function Employees() {
 
                 const response =
                     await api.get(
-                        "/employees",
+                        "/certifications",
                         {
                             headers: {
                                 Authorization:
@@ -46,9 +45,8 @@ function Employees() {
                             }
                         }
                     );
-                console.log(response.data);
 
-                setEmployees(
+                setCertifications(
                     response.data
                 );
 
@@ -58,11 +56,30 @@ function Employees() {
             }
         };
 
-        fetchEmployees();
+        fetchCertifications();
 
     }, []);
 
-    const deleteEmployee = async (employeeId) => {
+    const filteredCertifications =
+        certifications.filter(
+            (certification) =>
+                certification.certification_name
+                    ?.toLowerCase()
+                    .includes(
+                        search.toLowerCase()
+                    )
+        );
+    const deleteCertification = async (
+        certificationId
+    ) => {
+
+        if (
+            !window.confirm(
+                "Delete this certification?"
+            )
+        ) {
+            return;
+        }
 
         try {
 
@@ -70,7 +87,7 @@ function Employees() {
                 localStorage.getItem("token");
 
             await api.delete(
-                `/employees/${employeeId}`,
+                `/certifications/${certificationId}`,
                 {
                     headers: {
                         Authorization:
@@ -79,10 +96,10 @@ function Employees() {
                 }
             );
 
-            setEmployees(
-                employees.filter(
-                    (employee) =>
-                        employee.employee_id !== employeeId
+            setCertifications(
+                certifications.filter(
+                    (certification) =>
+                        certification.certification_id !== certificationId
                 )
             );
 
@@ -91,16 +108,6 @@ function Employees() {
             console.log(error);
         }
     };
-
-    const filteredEmployees = employees.filter(
-        (employee) =>
-            employee.first_name
-                ?.toLowerCase()
-                .includes(search.toLowerCase()) ||
-            employee.email
-                ?.toLowerCase()
-                .includes(search.toLowerCase())
-    );
 
     return (
 
@@ -123,7 +130,7 @@ function Employees() {
                     fontWeight="bold"
                     gutterBottom
                 >
-                    Employees Management
+                    Certifications Management
                 </Typography>
 
                 <Card sx={{ mb: 3 }}>
@@ -133,14 +140,12 @@ function Employees() {
                         <Box
                             sx={{
                                 display: "flex",
-                                justifyContent: "space-between",
                                 gap: 2
                             }}
                         >
 
                             <TextField
-                                label="Search Employee"
-                                variant="outlined"
+                                label="Search Certification"
                                 fullWidth
                                 value={search}
                                 onChange={(e) =>
@@ -154,11 +159,11 @@ function Employees() {
                                 variant="contained"
                                 onClick={() =>
                                     navigate(
-                                        "/employees/add"
+                                        "/certifications/add"
                                     )
                                 }
                             >
-                                Add Employee
+                                Add Certification
                             </Button>
 
                         </Box>
@@ -167,9 +172,7 @@ function Employees() {
 
                 </Card>
 
-                <TableContainer
-                    component={Paper}
-                >
+                <TableContainer component={Paper}>
 
                     <Table>
 
@@ -178,15 +181,23 @@ function Employees() {
                             <TableRow>
 
                                 <TableCell>
-                                    Name
+                                    Certification
                                 </TableCell>
 
                                 <TableCell>
-                                    Email
+                                    Issuer
                                 </TableCell>
 
                                 <TableCell>
-                                    Role
+                                    Issue Date
+                                </TableCell>
+
+                                <TableCell>
+                                    Expiry Date
+                                </TableCell>
+
+                                <TableCell>
+                                    Verified
                                 </TableCell>
 
                                 <TableCell>
@@ -199,44 +210,71 @@ function Employees() {
 
                         <TableBody>
 
-                            {filteredEmployees.map(
-                                (employee) => (
+                            {filteredCertifications.map(
+                                (certification) => (
 
                                     <TableRow
                                         key={
-                                            employee.employee_id
+                                            certification.certification_id
                                         }
                                     >
 
                                         <TableCell>
                                             {
-                                                employee.first_name
+                                                certification.certification_name
                                             }
                                         </TableCell>
 
                                         <TableCell>
                                             {
-                                                employee.email
+                                                certification.issuer
                                             }
                                         </TableCell>
 
                                         <TableCell>
                                             {
-                                                employee.role
+                                                certification.issue_date
                                             }
+                                        </TableCell>
+
+                                        <TableCell>
+                                            {
+                                                certification.expiry_date
+                                            }
+                                        </TableCell>
+
+                                        <TableCell>
+
+                                            <span
+                                                style={{
+                                                    backgroundColor:
+                                                        certification.verified
+                                                            ? "#4caf50"
+                                                            : "#f44336",
+                                                    color: "white",
+                                                    padding: "4px 10px",
+                                                    borderRadius: "12px",
+                                                    fontSize: "12px"
+                                                }}
+                                            >
+                                                {
+                                                    certification.verified
+                                                        ? "Verified"
+                                                        : "Pending"
+                                                }
+                                            </span>
+
                                         </TableCell>
 
                                         <TableCell>
 
                                             <Button
-                                                size="small"
                                                 variant="outlined"
-                                                sx={{
-                                                    mr: 1
-                                                }}
+                                                size="small"
+                                                sx={{ mr: 1 }}
                                                 onClick={() =>
                                                     navigate(
-                                                        `/employees/edit/${employee.employee_id}`
+                                                        `/certifications/edit/${certification.certification_id}`
                                                     )
                                                 }
                                             >
@@ -244,12 +282,12 @@ function Employees() {
                                             </Button>
 
                                             <Button
-                                                size="small"
-                                                color="error"
                                                 variant="contained"
+                                                color="error"
+                                                size="small"
                                                 onClick={() =>
-                                                    deleteEmployee(
-                                                        employee.employee_id
+                                                    deleteCertification(
+                                                        certification.certification_id
                                                     )
                                                 }
                                             >
@@ -275,4 +313,4 @@ function Employees() {
     );
 }
 
-export default Employees;
+export default Certifications;

@@ -19,17 +19,16 @@ import api from "../api/api";
 import Sidebar from "../components/Sidebar";
 import { useNavigate } from "react-router-dom";
 
+function Skills() {
 
-function Employees() {
-
-    const [employees, setEmployees] = useState([]);
+    const [skills, setSkills] = useState([]);
     const [search, setSearch] = useState("");
-    const navigate = useNavigate();
 
+    const navigate = useNavigate();
 
     useEffect(() => {
 
-        const fetchEmployees = async () => {
+        const fetchSkills = async () => {
 
             try {
 
@@ -38,7 +37,7 @@ function Employees() {
 
                 const response =
                     await api.get(
-                        "/employees",
+                        "/skills",
                         {
                             headers: {
                                 Authorization:
@@ -46,11 +45,8 @@ function Employees() {
                             }
                         }
                     );
-                console.log(response.data);
 
-                setEmployees(
-                    response.data
-                );
+                setSkills(response.data);
 
             } catch (error) {
 
@@ -58,11 +54,11 @@ function Employees() {
             }
         };
 
-        fetchEmployees();
+        fetchSkills();
 
     }, []);
 
-    const deleteEmployee = async (employeeId) => {
+    const deleteSkill = async (skillId) => {
 
         try {
 
@@ -70,7 +66,7 @@ function Employees() {
                 localStorage.getItem("token");
 
             await api.delete(
-                `/employees/${employeeId}`,
+                `/skills/${skillId}`,
                 {
                     headers: {
                         Authorization:
@@ -79,10 +75,10 @@ function Employees() {
                 }
             );
 
-            setEmployees(
-                employees.filter(
-                    (employee) =>
-                        employee.employee_id !== employeeId
+            setSkills(
+                skills.filter(
+                    (skill) =>
+                        skill.skill_id !== skillId
                 )
             );
 
@@ -92,15 +88,15 @@ function Employees() {
         }
     };
 
-    const filteredEmployees = employees.filter(
-        (employee) =>
-            employee.first_name
-                ?.toLowerCase()
-                .includes(search.toLowerCase()) ||
-            employee.email
-                ?.toLowerCase()
-                .includes(search.toLowerCase())
-    );
+    const filteredSkills =
+        skills.filter(
+            (skill) =>
+                skill.skill_name
+                    ?.toLowerCase()
+                    .includes(
+                        search.toLowerCase()
+                    )
+        );
 
     return (
 
@@ -123,7 +119,7 @@ function Employees() {
                     fontWeight="bold"
                     gutterBottom
                 >
-                    Employees Management
+                    Skills Management
                 </Typography>
 
                 <Card sx={{ mb: 3 }}>
@@ -133,14 +129,12 @@ function Employees() {
                         <Box
                             sx={{
                                 display: "flex",
-                                justifyContent: "space-between",
                                 gap: 2
                             }}
                         >
 
                             <TextField
-                                label="Search Employee"
-                                variant="outlined"
+                                label="Search Skill"
                                 fullWidth
                                 value={search}
                                 onChange={(e) =>
@@ -154,11 +148,11 @@ function Employees() {
                                 variant="contained"
                                 onClick={() =>
                                     navigate(
-                                        "/employees/add"
+                                        "/skills/add"
                                     )
                                 }
                             >
-                                Add Employee
+                                Add Skill
                             </Button>
 
                         </Box>
@@ -167,9 +161,7 @@ function Employees() {
 
                 </Card>
 
-                <TableContainer
-                    component={Paper}
-                >
+                <TableContainer component={Paper}>
 
                     <Table>
 
@@ -178,15 +170,19 @@ function Employees() {
                             <TableRow>
 
                                 <TableCell>
-                                    Name
+                                    Employee
                                 </TableCell>
 
                                 <TableCell>
-                                    Email
+                                    Skill
                                 </TableCell>
 
                                 <TableCell>
-                                    Role
+                                    Level
+                                </TableCell>
+
+                                <TableCell>
+                                    Verified
                                 </TableCell>
 
                                 <TableCell>
@@ -199,44 +195,49 @@ function Employees() {
 
                         <TableBody>
 
-                            {filteredEmployees.map(
-                                (employee) => (
+                            {filteredSkills.map(
+                                (skill) => (
 
                                     <TableRow
                                         key={
-                                            employee.employee_id
+                                            skill.skill_id
                                         }
                                     >
+                                        <TableCell>
+                                            {skill.employee_name}
+                                        </TableCell>
 
                                         <TableCell>
                                             {
-                                                employee.first_name
+                                                skill.skill_name
                                             }
                                         </TableCell>
 
                                         <TableCell>
                                             {
-                                                employee.email
+                                                skill.skill_level
                                             }
                                         </TableCell>
 
                                         <TableCell>
                                             {
-                                                employee.role
+                                                skill.verified
+                                                    ? "Yes"
+                                                    : "No"
                                             }
                                         </TableCell>
 
                                         <TableCell>
 
                                             <Button
-                                                size="small"
                                                 variant="outlined"
+                                                size="small"
                                                 sx={{
                                                     mr: 1
                                                 }}
                                                 onClick={() =>
                                                     navigate(
-                                                        `/employees/edit/${employee.employee_id}`
+                                                        `/skills/edit/${skill.skill_id}`
                                                     )
                                                 }
                                             >
@@ -244,12 +245,12 @@ function Employees() {
                                             </Button>
 
                                             <Button
-                                                size="small"
-                                                color="error"
                                                 variant="contained"
+                                                color="error"
+                                                size="small"
                                                 onClick={() =>
-                                                    deleteEmployee(
-                                                        employee.employee_id
+                                                    deleteSkill(
+                                                        skill.skill_id
                                                     )
                                                 }
                                             >
@@ -275,4 +276,4 @@ function Employees() {
     );
 }
 
-export default Employees;
+export default Skills;

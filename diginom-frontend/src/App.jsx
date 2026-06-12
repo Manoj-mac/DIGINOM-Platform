@@ -4,7 +4,11 @@ import Dashboard from "./pages/Dashboard";
 import Employees from "./pages/Employees";
 import AddEmployee from "./pages/AddEmployee";
 import EditEmployee from "./pages/EditEmployee";
-
+import Skills from "./pages/Skills";
+import AddSkill from "./pages/AddSkill";
+import Certifications from "./pages/Certifications";
+import AddCertification from "./pages/AddCertification";
+import EditCertification from "./pages/EditCertification";
 function App() {
   return (
     <BrowserRouter>
@@ -23,6 +27,26 @@ function App() {
         <Route
           path="/employees/edit/:employeeId"
           element={<EditEmployee />}
+        />
+        <Route
+          path="/skills"
+          element={<Skills />}
+        />
+        <Route
+          path="/skills/add"
+          element={<AddSkill />}
+        />
+        <Route
+          path="/certifications"
+          element={<Certifications />}
+        />
+        <Route
+          path="/certifications/add"
+          element={<AddCertification />}
+        />
+        <Route
+          path="/certifications/edit/:certificationId"
+          element={<EditCertification />}
         />
       </Routes>
     </BrowserRouter>

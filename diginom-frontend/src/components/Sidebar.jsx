@@ -18,10 +18,12 @@ import {
     Description,
     Business,
     Work,
-    Settings
+    Settings,
+    QuestionAnswer
 } from "@mui/icons-material";
 
 import { useNavigate } from "react-router-dom";
+
 
 const drawerWidth = 240;
 
@@ -66,10 +68,36 @@ function Sidebar() {
             path: "/jobs"
         },
         {
+            text: "Recruiter Dashboard",
+            icon: <Dashboard />,
+            path: "/recruiter-dashboard"
+        },
+        {
+            text: "Audit Logs",
+            icon: <Description />,
+            path: "/audit-logs"
+        },
+        {
             text: "Settings",
             icon: <Settings />,
             path: "/settings"
+        },
+        {
+            text: "Interviews",
+            icon: <QuestionAnswer />,
+            path: "/interviews"
+        },
+        {
+            text: "Offers",
+            icon: <Work />,
+            path: "/offers"
+        },
+        {
+            text: "Analytics",
+            icon: <Dashboard />,
+            path: "/analytics"
         }
+
     ];
 
     return (

@@ -19,19 +19,63 @@ import api from "../api/api";
 import Sidebar from "../components/Sidebar";
 import { useNavigate } from "react-router-dom";
 
+function Interviews() {
 
-function Employees() {
+    const [interviews, setInterviews] =
+        useState([]);
 
-    const [employees, setEmployees] = useState([]);
-    const [trustScores, setTrustScores] =
-        useState({});
-    const [search, setSearch] = useState("");
-    const navigate = useNavigate();
+    const [search, setSearch] =
+        useState("");
 
+    const navigate =
+        useNavigate();
 
     useEffect(() => {
 
-        const fetchEmployees = async () => {
+        const fetchInterviews =
+            async () => {
+
+                try {
+
+                    const token =
+                        localStorage.getItem(
+                            "token"
+                        );
+
+                    const response =
+                        await api.get(
+                            "/interviews",
+                            {
+                                headers: {
+                                    Authorization:
+                                        `Bearer ${token}`
+                                }
+                            }
+                        );
+
+                    setInterviews(
+                        response.data
+                    );
+
+                } catch (error) {
+
+                    console.log(error);
+                }
+            };
+
+        fetchInterviews();
+
+    }, []);
+
+    const deleteInterview =
+        async (interviewId) => {
+
+            if (
+                !window.confirm(
+                    "Delete interview?"
+                )
+            )
+                return;
 
             try {
 
@@ -40,111 +84,38 @@ function Employees() {
                         "token"
                     );
 
-                const response =
-                    await api.get(
-                        "/employees",
-                        {
-                            headers: {
-                                Authorization:
-                                    `Bearer ${token}`
-                            }
+                await api.delete(
+                    `/interviews/${interviewId}`,
+                    {
+                        headers: {
+                            Authorization:
+                                `Bearer ${token}`
                         }
-                    );
-
-                setEmployees(
-                    response.data
+                    }
                 );
 
-                const scores = {};
-
-                for (
-                    const employee
-                    of response.data
-                ) {
-
-                    try {
-
-                        const scoreResponse =
-                            await api.get(
-                                `/employees/${employee.employee_id}/trust-score`,
-                                {
-                                    headers: {
-                                        Authorization:
-                                            `Bearer ${token}`
-                                    }
-                                }
-                            );
-
-                        scores[
-                            employee.employee_id
-                        ] =
-                            scoreResponse.data
-                                .trust_score;
-
-                    } catch {
-
-                        scores[
-                            employee.employee_id
-                        ] = 0;
-                    }
-                }
-
-                setTrustScores(
-                    scores
+                setInterviews(
+                    interviews.filter(
+                        (interview) =>
+                            interview.interview_id !== interviewId
+                    )
                 );
 
             } catch (error) {
 
-                console.log(
-                    error
-                );
+                console.log(error);
             }
         };
 
-
-        fetchEmployees();
-
-    }, []);
-
-    const deleteEmployee = async (employeeId) => {
-
-        try {
-
-            const token =
-                localStorage.getItem("token");
-
-            await api.delete(
-                `/employees/${employeeId}`,
-                {
-                    headers: {
-                        Authorization:
-                            `Bearer ${token}`
-                    }
-                }
-            );
-
-            setEmployees(
-                employees.filter(
-                    (employee) =>
-                        employee.employee_id !== employeeId
-                )
-            );
-
-        } catch (error) {
-
-            console.log(error);
-        }
-    };
-
-    const filteredEmployees = employees.filter(
-        (employee) =>
-            employee.first_name
-                ?.toLowerCase()
-                .includes(search.toLowerCase()) ||
-            employee.email
-                ?.toLowerCase()
-                .includes(search.toLowerCase())
-    );
+    const filteredInterviews =
+        interviews.filter(
+            (interview) =>
+                interview.interview_type
+                    ?.toLowerCase()
+                    .includes(
+                        search.toLowerCase()
+                    )
+        );
 
     return (
 
@@ -167,7 +138,7 @@ function Employees() {
                     fontWeight="bold"
                     gutterBottom
                 >
-                    Employees Management
+                    Interview Management
                 </Typography>
 
                 <Card sx={{ mb: 3 }}>
@@ -177,14 +148,12 @@ function Employees() {
                         <Box
                             sx={{
                                 display: "flex",
-                                justifyContent: "space-between",
                                 gap: 2
                             }}
                         >
 
                             <TextField
-                                label="Search Employee"
-                                variant="outlined"
+                                label="Search Interview"
                                 fullWidth
                                 value={search}
                                 onChange={(e) =>
@@ -198,11 +167,11 @@ function Employees() {
                                 variant="contained"
                                 onClick={() =>
                                     navigate(
-                                        "/employees/add"
+                                        "/interviews/add"
                                     )
                                 }
                             >
-                                Add Employee
+                                Add Interview
                             </Button>
 
                         </Box>
@@ -222,19 +191,27 @@ function Employees() {
                             <TableRow>
 
                                 <TableCell>
-                                    Name
+                                    Employee ID
                                 </TableCell>
 
                                 <TableCell>
-                                    Email
+                                    Job ID
                                 </TableCell>
 
                                 <TableCell>
-                                    Role
+                                    Date
                                 </TableCell>
 
                                 <TableCell>
-                                    Trust Score
+                                    Type
+                                </TableCell>
+
+                                <TableCell>
+                                    Status
+                                </TableCell>
+
+                                <TableCell>
+                                    Feedback
                                 </TableCell>
 
                                 <TableCell>
@@ -247,38 +224,50 @@ function Employees() {
 
                         <TableBody>
 
-                            {filteredEmployees.map(
-                                (employee) => (
+                            {filteredInterviews.map(
+                                (
+                                    interview
+                                ) => (
 
                                     <TableRow
                                         key={
-                                            employee.employee_id
+                                            interview.interview_id
                                         }
                                     >
 
                                         <TableCell>
                                             {
-                                                employee.first_name
+                                                interview.employee_id
                                             }
                                         </TableCell>
 
                                         <TableCell>
                                             {
-                                                employee.email
+                                                interview.job_id
                                             }
                                         </TableCell>
 
                                         <TableCell>
                                             {
-                                                employee.role
+                                                interview.interview_date
                                             }
                                         </TableCell>
 
                                         <TableCell>
                                             {
-                                                trustScores[
-                                                employee.employee_id
-                                                ] || 0
+                                                interview.interview_type
+                                            }
+                                        </TableCell>
+
+                                        <TableCell>
+                                            {
+                                                interview.status
+                                            }
+                                        </TableCell>
+
+                                        <TableCell>
+                                            {
+                                                interview.feedback
                                             }
                                         </TableCell>
 
@@ -292,7 +281,7 @@ function Employees() {
                                                 }}
                                                 onClick={() =>
                                                     navigate(
-                                                        `/employees/edit/${employee.employee_id}`
+                                                        `/interviews/edit/${interview.interview_id}`
                                                     )
                                                 }
                                             >
@@ -304,8 +293,8 @@ function Employees() {
                                                 color="error"
                                                 variant="contained"
                                                 onClick={() =>
-                                                    deleteEmployee(
-                                                        employee.employee_id
+                                                    deleteInterview(
+                                                        interview.interview_id
                                                     )
                                                 }
                                             >
@@ -315,6 +304,7 @@ function Employees() {
                                         </TableCell>
 
                                     </TableRow>
+
                                 )
                             )}
 
@@ -330,4 +320,4 @@ function Employees() {
     );
 }
 
-export default Employees;
+export default Interviews;

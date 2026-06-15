@@ -19,30 +19,25 @@ import api from "../api/api";
 import Sidebar from "../components/Sidebar";
 import { useNavigate } from "react-router-dom";
 
+function Jobs() {
 
-function Employees() {
-
-    const [employees, setEmployees] = useState([]);
-    const [trustScores, setTrustScores] =
-        useState({});
+    const [jobs, setJobs] = useState([]);
     const [search, setSearch] = useState("");
-    const navigate = useNavigate();
 
+    const navigate = useNavigate();
 
     useEffect(() => {
 
-        const fetchEmployees = async () => {
+        const fetchJobs = async () => {
 
             try {
 
                 const token =
-                    localStorage.getItem(
-                        "token"
-                    );
+                    localStorage.getItem("token");
 
                 const response =
                     await api.get(
-                        "/employees",
+                        "/jobs",
                         {
                             headers: {
                                 Authorization:
@@ -51,62 +46,23 @@ function Employees() {
                         }
                     );
 
-                setEmployees(
-                    response.data
-                );
-
-                const scores = {};
-
-                for (
-                    const employee
-                    of response.data
-                ) {
-
-                    try {
-
-                        const scoreResponse =
-                            await api.get(
-                                `/employees/${employee.employee_id}/trust-score`,
-                                {
-                                    headers: {
-                                        Authorization:
-                                            `Bearer ${token}`
-                                    }
-                                }
-                            );
-
-                        scores[
-                            employee.employee_id
-                        ] =
-                            scoreResponse.data
-                                .trust_score;
-
-                    } catch {
-
-                        scores[
-                            employee.employee_id
-                        ] = 0;
-                    }
-                }
-
-                setTrustScores(
-                    scores
-                );
+                setJobs(response.data);
 
             } catch (error) {
 
-                console.log(
-                    error
-                );
+                console.log(error);
             }
         };
 
-
-        fetchEmployees();
+        fetchJobs();
 
     }, []);
 
-    const deleteEmployee = async (employeeId) => {
+    const deleteJob = async (jobId) => {
+
+        if (!window.confirm(
+            "Delete this job?"
+        )) return;
 
         try {
 
@@ -114,7 +70,7 @@ function Employees() {
                 localStorage.getItem("token");
 
             await api.delete(
-                `/employees/${employeeId}`,
+                `/jobs/${jobId}`,
                 {
                     headers: {
                         Authorization:
@@ -123,10 +79,10 @@ function Employees() {
                 }
             );
 
-            setEmployees(
-                employees.filter(
-                    (employee) =>
-                        employee.employee_id !== employeeId
+            setJobs(
+                jobs.filter(
+                    (job) =>
+                        job.job_id !== jobId
                 )
             );
 
@@ -136,15 +92,15 @@ function Employees() {
         }
     };
 
-    const filteredEmployees = employees.filter(
-        (employee) =>
-            employee.first_name
-                ?.toLowerCase()
-                .includes(search.toLowerCase()) ||
-            employee.email
-                ?.toLowerCase()
-                .includes(search.toLowerCase())
-    );
+    const filteredJobs =
+        jobs.filter(
+            (job) =>
+                job.job_title
+                    ?.toLowerCase()
+                    .includes(
+                        search.toLowerCase()
+                    )
+        );
 
     return (
 
@@ -167,7 +123,7 @@ function Employees() {
                     fontWeight="bold"
                     gutterBottom
                 >
-                    Employees Management
+                    Jobs Management
                 </Typography>
 
                 <Card sx={{ mb: 3 }}>
@@ -177,14 +133,12 @@ function Employees() {
                         <Box
                             sx={{
                                 display: "flex",
-                                justifyContent: "space-between",
                                 gap: 2
                             }}
                         >
 
                             <TextField
-                                label="Search Employee"
-                                variant="outlined"
+                                label="Search Job"
                                 fullWidth
                                 value={search}
                                 onChange={(e) =>
@@ -198,11 +152,11 @@ function Employees() {
                                 variant="contained"
                                 onClick={() =>
                                     navigate(
-                                        "/employees/add"
+                                        "/jobs/add"
                                     )
                                 }
                             >
-                                Add Employee
+                                Add Job
                             </Button>
 
                         </Box>
@@ -222,19 +176,23 @@ function Employees() {
                             <TableRow>
 
                                 <TableCell>
-                                    Name
+                                    Job Title
                                 </TableCell>
 
                                 <TableCell>
-                                    Email
+                                    Skill
                                 </TableCell>
 
                                 <TableCell>
-                                    Role
+                                    Experience
                                 </TableCell>
 
                                 <TableCell>
-                                    Trust Score
+                                    Openings
+                                </TableCell>
+
+                                <TableCell>
+                                    Status
                                 </TableCell>
 
                                 <TableCell>
@@ -247,38 +205,42 @@ function Employees() {
 
                         <TableBody>
 
-                            {filteredEmployees.map(
-                                (employee) => (
+                            {filteredJobs.map(
+                                (job) => (
 
                                     <TableRow
                                         key={
-                                            employee.employee_id
+                                            job.job_id
                                         }
                                     >
 
                                         <TableCell>
                                             {
-                                                employee.first_name
+                                                job.job_title
                                             }
                                         </TableCell>
 
                                         <TableCell>
                                             {
-                                                employee.email
+                                                job.required_skill
                                             }
                                         </TableCell>
 
                                         <TableCell>
                                             {
-                                                employee.role
+                                                job.minimum_experience
                                             }
                                         </TableCell>
 
                                         <TableCell>
                                             {
-                                                trustScores[
-                                                employee.employee_id
-                                                ] || 0
+                                                job.openings
+                                            }
+                                        </TableCell>
+
+                                        <TableCell>
+                                            {
+                                                job.status
                                             }
                                         </TableCell>
 
@@ -292,7 +254,7 @@ function Employees() {
                                                 }}
                                                 onClick={() =>
                                                     navigate(
-                                                        `/employees/edit/${employee.employee_id}`
+                                                        `/jobs/edit/${job.job_id}`
                                                     )
                                                 }
                                             >
@@ -301,20 +263,36 @@ function Employees() {
 
                                             <Button
                                                 size="small"
+                                                color="success"
+                                                variant="contained"
+                                                sx={{
+                                                    mr: 1
+                                                }}
+                                                onClick={() =>
+                                                    navigate(
+                                                        `/jobs/matches/${job.job_id}`
+                                                    )
+                                                }
+                                            >
+                                                Matches
+                                            </Button>
+
+                                            <Button
+                                                size="small"
                                                 color="error"
                                                 variant="contained"
                                                 onClick={() =>
-                                                    deleteEmployee(
-                                                        employee.employee_id
+                                                    deleteJob(
+                                                        job.job_id
                                                     )
                                                 }
                                             >
                                                 Delete
                                             </Button>
-
                                         </TableCell>
 
                                     </TableRow>
+
                                 )
                             )}
 
@@ -330,4 +308,4 @@ function Employees() {
     );
 }
 
-export default Employees;
+export default Jobs;

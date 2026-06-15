@@ -1,6 +1,7 @@
 from app.roles import admin_required
 from fastapi import FastAPI, Depends
 from sqlalchemy.orm import Session
+from app.models import Employee
 
 from app.auth import router as auth_router
 from app.dependencies import verify_token
@@ -105,6 +106,10 @@ from datetime import datetime
 
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse
+from app.email_service import (
+    send_email
+)
 app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
@@ -147,6 +152,40 @@ from app.job_requisition_crud import (
     delete_job
 )
 
+from app.interview import Interview
+
+from app.interview_schema import (
+    InterviewCreate,
+    InterviewUpdate
+)
+
+from app.interview_crud import (
+    create_interview,
+    get_interviews,
+    get_interview_by_id,
+    update_interview,
+    delete_interview
+)
+
+from app.offer import Offer
+
+from app.offer_schema import (
+    OfferCreate,
+    OfferUpdate
+)
+
+from app.offer_crud import (
+    create_offer,
+    get_offers,
+    get_offer_by_id,
+    update_offer,
+    delete_offer
+)
+
+from app.pdf_service import (
+    generate_offer_letter
+)
+
 from app.interview_pipeline import InterviewPipeline
 from datetime import datetime
 
@@ -166,14 +205,6 @@ def get_db():
 
 
 # CREATE EMPLOYEE (ADMIN ONLY)
-@app.post("/employees")
-def add_employee(
-    employee: EmployeeCreate,
-    db: Session = Depends(get_db),
-    token: dict = Depends(admin_required)
-):
-    return create_employee(db, employee)
-
 @app.post("/employees")
 def add_employee(
     employee: EmployeeCreate,
@@ -432,6 +463,182 @@ def add_pipeline(
         "employee_id": result.employee_id,
         "stage": result.stage,
         "remarks": result.remarks
+    }
+@app.post("/interviews")
+def add_interview(
+    interview: InterviewCreate,
+    db: Session = Depends(get_db),
+    token: dict = Depends(verify_token)
+):
+
+    new_interview = create_interview(
+        db,
+        interview,
+        token["sub"]
+    )
+
+    create_audit_log(
+        db,
+        token["sub"],
+        "CREATE",
+        "INTERVIEW",
+        new_interview["interview_id"]
+    )
+
+    return new_interview
+
+@app.post("/offers")
+def add_offer(
+    offer: OfferCreate,
+    db: Session = Depends(get_db),
+    token: dict = Depends(verify_token)
+):
+
+    new_offer = create_offer(
+        db,
+        offer
+    )
+
+    create_audit_log(
+        db,
+        token["sub"],
+        "CREATE",
+        "OFFER",
+        new_offer["offer_id"]
+    )
+
+    return new_offer
+
+@app.post(
+    "/offers/{offer_id}/send-email"
+)
+def send_offer_email(
+    offer_id: str,
+    db: Session = Depends(get_db),
+    token: dict = Depends(
+        verify_token
+    )
+):
+
+    offer = get_offer_by_id(
+        db,
+        offer_id
+    )
+
+    if not offer:
+
+        return {
+            "message":
+            "Offer not found"
+        }
+
+    employee = db.query(
+        Employee
+    ).filter(
+        Employee.employee_id
+        ==
+        offer.employee_id
+    ).first()
+
+    if not employee:
+
+        return {
+            "message":
+            "Employee not found"
+        }
+
+    send_email(
+
+        employee.email,
+
+        "Offer Letter",
+
+        f"""
+Dear {employee.first_name},
+
+Congratulations!
+
+An offer has been created for you.
+
+Salary:
+₹{offer.offered_salary}
+
+Joining Date:
+{offer.joining_date}
+
+Regards,
+DIGINOM HR
+"""
+    )
+
+    return {
+        "message":
+        "Offer email sent"
+    }
+
+@app.post(
+    "/interviews/{interview_id}/send-email"
+)
+def send_interview_email(
+    interview_id: str,
+    db: Session = Depends(get_db),
+    token: dict = Depends(
+        verify_token
+    )
+):
+
+    interview = get_interview_by_id(
+            db,
+            interview_id
+        )
+
+    if not interview:
+
+        return {
+            "message":
+            "Interview not found"
+        }
+
+    employee = db.query(
+        Employee
+    ).filter(
+        Employee.employee_id
+        ==
+        interview.employee_id
+    ).first()
+
+    if not employee:
+
+        return {
+            "message":
+            "Employee not found"
+        }
+
+    send_email(
+
+        employee.email,
+
+        "Interview Schedule",
+
+        f"""
+Dear {employee.first_name},
+
+Your interview has been scheduled.
+
+Date:
+{interview.interview_date}
+
+Type:
+{interview.interview_type}
+
+Regards,
+DIGINOM Recruitment Team
+"""
+    )
+
+    return {
+        "message":
+        "Interview email sent"
     }
 # GET ALL EMPLOYEES (LOGGED-IN USERS)
 @app.get("/employees")
@@ -826,6 +1033,65 @@ def verified_employees(
         }
         for emp in employees
     ]
+@app.get("/employees/{employee_id}/trust-score")
+def get_trust_score(
+    employee_id: str,
+    db: Session = Depends(get_db),
+    token: dict = Depends(verify_token)
+):
+
+    score = 0
+
+    # Skills
+    employee_skills = [
+        s for s in get_skills(db)
+        if str(s["employee_id"]) == employee_id
+    ]
+
+    if any(
+        skill["verified"]
+        for skill in employee_skills
+    ):
+        score += 20
+
+    # Certifications
+    employee_certifications = [
+        c for c in get_certifications(db)
+        if str(c.employee_id) == employee_id
+    ]
+
+    if any(
+        cert.verified
+        for cert in employee_certifications
+    ):
+        score += 30
+
+    # Documents
+    employee_documents = [
+        d for d in get_documents(db)
+        if str(d["employee_id"]) == employee_id
+    ]
+
+    if any(
+        doc["verified"]
+        for doc in employee_documents
+    ):
+        score += 30
+
+    # Employment History
+    employee_history = [
+        h for h in get_employment_history(db)
+        if str(h.employee_id) == employee_id
+    ]
+
+    if len(employee_history) > 0:
+        score += 20
+
+    return {
+        "employee_id": employee_id,
+        "trust_score": score
+    }
+
 @app.get("/dashboard-summary")
 def dashboard_summary(
     db: Session = Depends(get_db),
@@ -1249,20 +1515,21 @@ def match_candidates(
 
         employee_skills = [
             s for s in get_skills(db)
-            if str(s.employee_id)
+            if str(s["employee_id"])
             == str(employee.employee_id)
         ]
 
         for skill in employee_skills:
 
             if (
-                skill.skill_name.lower()
+                skill["skill_name"].lower()
                 ==
                 job.required_skill.lower()
             ):
+
                 score += 50
 
-                if skill.verified:
+                if skill["verified"]:
                     score += 20
 
         employee_certifications = [
@@ -1276,54 +1543,27 @@ def match_candidates(
             if cert.verified:
                 score += 10
 
-        histories = get_employment_history(db)
+        experience_years = 0
 
-        total_days = 0
-
-        for history in histories:
-
-            if str(history.employee_id) == str(employee.employee_id):
-
-                start = history.start_date
-
-                end = (
-                    history.end_date
-                    if history.end_date
-                    else datetime.utcnow().date()
-                )
-
-                total_days += (
-                    end - start
-                ).days
-
-        experience_years = round(
-            total_days / 365,
-            2
-        )
-
-        if (
-            experience_years >=
-            float(job.minimum_experience)
-        ):
+        if experience_years >= float(job.minimum_experience):
             score += 20
 
         if score > 0:
 
             matches.append({
+
                 "employee_id":
-                str(employee.employee_id),
+                    str(employee.employee_id),
 
                 "name":
-                employee.first_name,
+                    f"{employee.first_name} {employee.last_name}",
 
                 "email":
-                employee.email,
-
-                "experience_years":
-                experience_years,
+                    employee.email,
 
                 "match_score":
-                score
+                    score
+
             })
 
     matches.sort(
@@ -1332,6 +1572,7 @@ def match_candidates(
     )
 
     return matches
+
 
 @app.get("/dashboard/stats")
 def dashboard_stats(
@@ -1346,6 +1587,129 @@ def dashboard_stats(
         "jobs": len(get_jobs(db)),
         "verifications": len(get_verification_requests(db))
     }
+
+
+@app.get("/recruiter-dashboard")
+def recruiter_dashboard(
+    db: Session = Depends(get_db),
+    token: dict = Depends(verify_token)
+):
+    return {
+
+        "total_jobs":
+        len(get_jobs(db)),
+
+        "open_jobs":
+        len([
+            j for j in get_jobs(db)
+            if j.status == "OPEN"
+        ]),
+
+        "total_employees":
+        len(get_employees(db)),
+
+        "verified_skills":
+        len([
+            s for s in get_skills(db)
+            if s["verified"]
+        ])
+        
+    }
+@app.get("/interviews")
+def list_interviews(
+    db: Session = Depends(get_db),
+    token: dict = Depends(verify_token)
+):
+    return get_interviews(db)
+
+@app.get("/offers")
+def list_offers(
+    db: Session = Depends(get_db),
+    token: dict = Depends(verify_token)
+):
+    return get_offers(db)
+
+@app.get("/analytics")
+def analytics(
+    db: Session = Depends(get_db),
+    token: dict = Depends(admin_required)
+):
+
+    return {
+
+        "employees":
+            len(get_employees(db)),
+
+        "skills":
+            len(get_skills(db)),
+
+        "certifications":
+            len(get_certifications(db)),
+
+        "documents":
+            len(get_documents(db)),
+
+        "companies":
+            len(get_companies(db)),
+
+        "jobs":
+            len(get_jobs(db)),
+
+        "interviews":
+            len(get_interviews(db)),
+
+        "offers":
+            len(get_offers(db))
+    }
+
+
+@app.get(
+    "/offers/{offer_id}/pdf"
+)
+def generate_offer_pdf(
+    offer_id: str,
+    db: Session = Depends(get_db),
+    token: dict = Depends(
+        verify_token
+    )
+):
+
+    offer = get_offer_by_id(
+            db,
+            offer_id
+        )
+
+    if not offer:
+
+        return {
+            "message":
+            "Offer not found"
+        }
+
+    filename = (
+        f"offer_{offer_id}.pdf"
+    )
+
+    generate_offer_letter(
+
+        filename,
+
+        "Employee",
+
+        "Software Engineer",
+
+        offer.offered_salary,
+
+        offer.joining_date
+    )
+
+    return FileResponse(
+        filename,
+        media_type=
+        "application/pdf",
+        filename=filename
+    )
+
 
 @app.put("/companies/{company_id}")
 def edit_company(
@@ -1364,6 +1728,8 @@ def edit_company(
         return {"message": "Company not found"}
 
     return updated_company
+
+
 
 
 # UPDATE EMPLOYEE (ADMIN ONLY)
@@ -1477,17 +1843,18 @@ def approve_verification(
 
         if certification:
             certification.verified = True
+
     elif request.verification_type == "DOCUMENT":
 
-     document = db.query(
-        Document
-    ).filter(
-        Document.document_id ==
-        request.entity_id
-    ).first()
+        document = db.query(
+            Document
+        ).filter(
+            Document.document_id ==
+            request.entity_id
+        ).first()
 
-    if document:
-        document.verified = True
+        if document:
+            document.verified = True
 
     request.status = "APPROVED"
     request.verified_by = token["sub"]
@@ -1563,6 +1930,57 @@ def update_job(
         "job_id": str(result.job_id),
         "status": result.status
     }
+@app.put("/interviews/{interview_id}")
+def edit_interview(
+    interview_id: str,
+    interview: InterviewUpdate,
+    db: Session = Depends(get_db),
+    token: dict = Depends(verify_token)
+):
+
+    updated_interview = update_interview(
+        db,
+        interview_id,
+        interview
+    )
+
+    if not updated_interview:
+        return {
+            "message":
+            "Interview not found"
+        }
+
+    create_audit_log(
+        db,
+        token["sub"],
+        "UPDATE",
+        "INTERVIEW",
+        interview_id
+    )
+
+    return updated_interview
+
+@app.put("/offers/{offer_id}")
+def edit_offer(
+    offer_id: str,
+    offer: OfferUpdate,
+    db: Session = Depends(get_db),
+    token: dict = Depends(verify_token)
+):
+
+    updated_offer = update_offer(
+        db,
+        offer_id,
+        offer
+    )
+
+    if not updated_offer:
+        return {
+            "message":
+            "Offer not found"
+        }
+
+    return updated_offer
 
 # DELETE EMPLOYEE (ADMIN ONLY)
 @app.delete("/companies/{company_id}")
@@ -1700,3 +2118,50 @@ def remove_employee(
     return {
         "message": "Employee deleted successfully"
     }
+@app.delete("/interviews/{interview_id}")
+def remove_interview(
+    interview_id: str,
+    db: Session = Depends(get_db),
+    token: dict = Depends(admin_required)
+):
+
+    result = delete_interview(
+        db,
+        interview_id
+    )
+
+    if not result:
+        return {
+            "message":
+            "Interview not found"
+        }
+
+    create_audit_log(
+        db,
+        token["sub"],
+        "DELETE",
+        "INTERVIEW",
+        interview_id
+    )
+
+    return result
+
+@app.delete("/offers/{offer_id}")
+def remove_offer(
+    offer_id: str,
+    db: Session = Depends(get_db),
+    token: dict = Depends(admin_required)
+):
+
+    result = delete_offer(
+        db,
+        offer_id
+    )
+
+    if not result:
+        return {
+            "message":
+            "Offer not found"
+        }
+
+    return result

@@ -86,6 +86,7 @@ class DocumentCreate(BaseModel):
     document_name: str
     document_type: str
     file_path: str
+    
 
 
 class DocumentUpdate(BaseModel):

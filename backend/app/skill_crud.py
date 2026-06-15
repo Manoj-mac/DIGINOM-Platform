@@ -1,4 +1,5 @@
 from app.skills import Skill
+from app.models import Employee
 
 
 def create_skill(db, skill):
@@ -22,8 +23,40 @@ def create_skill(db, skill):
 
 
 def get_skills(db):
-    return db.query(Skill).all()
 
+    skills = db.query(Skill).all()
+
+    result = []
+
+    for skill in skills:
+
+        employee = db.query(Employee).filter(
+            Employee.employee_id == skill.employee_id
+        ).first()
+
+        result.append({
+
+            "skill_id":
+                str(skill.skill_id),
+
+            "employee_id":
+                str(skill.employee_id),
+
+            "employee_name":
+                f"{employee.first_name} {employee.last_name}"
+                if employee else "Unknown",
+
+            "skill_name":
+                skill.skill_name,
+
+            "skill_level":
+                skill.skill_level,
+
+            "verified":
+                skill.verified
+        })
+
+    return result
 
 def get_skill_by_id(db, skill_id):
     return db.query(Skill).filter(

@@ -17,12 +17,21 @@ import {
 
 import api from "../api/api";
 import Sidebar from "../components/Sidebar";
+import ConfirmDialog
+    from "../components/ConfirmDialog";
 import { useNavigate } from "react-router-dom";
 
 function Jobs() {
 
     const [jobs, setJobs] = useState([]);
     const [search, setSearch] = useState("");
+    const [confirmOpen,
+        setConfirmOpen] =
+        useState(false);
+
+    const [selectedJob,
+        setSelectedJob] =
+        useState(null);
 
     const navigate = useNavigate();
 
@@ -58,39 +67,53 @@ function Jobs() {
 
     }, []);
 
-    const deleteJob = async (jobId) => {
+    const deleteJob =
+        async () => {
 
-        if (!window.confirm(
-            "Delete this job?"
-        )) return;
+            try {
 
-        try {
+                const token =
+                    localStorage.getItem(
+                        "token"
+                    );
 
-            const token =
-                localStorage.getItem("token");
+                await api.delete(
 
-            await api.delete(
-                `/jobs/${jobId}`,
-                {
-                    headers: {
-                        Authorization:
-                            `Bearer ${token}`
+                    `/jobs/${selectedJob}`,
+
+                    {
+                        headers: {
+                            Authorization:
+                                `Bearer ${token}`
+                        }
                     }
-                }
-            );
+                );
 
-            setJobs(
-                jobs.filter(
-                    (job) =>
-                        job.job_id !== jobId
-                )
-            );
+                setJobs(
 
-        } catch (error) {
+                    jobs.filter(
 
-            console.log(error);
-        }
-    };
+                        (job) =>
+
+                            job.job_id !==
+
+                            selectedJob
+                    )
+                );
+
+                setConfirmOpen(
+                    false
+                );
+
+                setSelectedJob(
+                    null
+                );
+
+            } catch (error) {
+
+                console.log(error);
+            }
+        };
 
     const filteredJobs =
         jobs.filter(
@@ -249,9 +272,7 @@ function Jobs() {
                                             <Button
                                                 size="small"
                                                 variant="outlined"
-                                                sx={{
-                                                    mr: 1
-                                                }}
+                                                sx={{ mr: 1 }}
                                                 onClick={() =>
                                                     navigate(
                                                         `/jobs/edit/${job.job_id}`
@@ -265,9 +286,7 @@ function Jobs() {
                                                 size="small"
                                                 color="success"
                                                 variant="contained"
-                                                sx={{
-                                                    mr: 1
-                                                }}
+                                                sx={{ mr: 1 }}
                                                 onClick={() =>
                                                     navigate(
                                                         `/jobs/matches/${job.job_id}`
@@ -279,18 +298,38 @@ function Jobs() {
 
                                             <Button
                                                 size="small"
-                                                color="error"
+                                                color="info"
                                                 variant="contained"
+                                                sx={{ mr: 1 }}
                                                 onClick={() =>
-                                                    deleteJob(
-                                                        job.job_id
+                                                    navigate(
+                                                        `/jobs/${job.job_id}/recommendations`
                                                     )
                                                 }
                                             >
+                                                Recommendations
+                                            </Button>
+
+                                            <Button
+                                                size="small"
+                                                color="error"
+                                                variant="contained"
+                                                onClick={() => {
+
+                                                    setSelectedJob(
+                                                        job.job_id
+                                                    );
+
+                                                    setConfirmOpen(
+                                                        true
+                                                    );
+
+                                                }}
+                                            >
                                                 Delete
                                             </Button>
-                                        </TableCell>
 
+                                        </TableCell>
                                     </TableRow>
 
                                 )
@@ -301,6 +340,28 @@ function Jobs() {
                     </Table>
 
                 </TableContainer>
+                <ConfirmDialog
+
+                    open={confirmOpen}
+
+                    title="Delete Job"
+
+                    message="Deleting this job may affect interviews and offers."
+
+                    onConfirm={deleteJob}
+                    onCancel={() => {
+
+                        setConfirmOpen(
+                            false
+                        );
+
+                        setSelectedJob(
+                            null
+                        );
+
+                    }}
+
+                />
 
             </Box>
 

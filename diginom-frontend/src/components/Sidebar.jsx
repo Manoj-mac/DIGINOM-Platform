@@ -1,162 +1,194 @@
 import {
     Drawer,
     List,
-    ListItem,
     ListItemButton,
     ListItemIcon,
     ListItemText,
     Toolbar,
     Typography,
-    Box
+    Divider
 } from "@mui/material";
 
+import DashboardIcon from "@mui/icons-material/Dashboard";
+import PeopleIcon from "@mui/icons-material/People";
+import WorkIcon from "@mui/icons-material/Work";
+import AssignmentIcon from "@mui/icons-material/Assignment";
+import AnalyticsIcon from "@mui/icons-material/Analytics";
+import TimelineIcon from "@mui/icons-material/Timeline";
+import NotificationsIcon from "@mui/icons-material/Notifications";
+import DescriptionIcon from "@mui/icons-material/Description";
+import SchoolIcon from "@mui/icons-material/School";
+import ArticleIcon from "@mui/icons-material/Article";
+import NoteIcon from "@mui/icons-material/Note";
+
 import {
-    Dashboard,
-    People,
-    Psychology,
-    WorkspacePremium,
-    Description,
-    Business,
-    Work,
-    Settings,
-    QuestionAnswer
-} from "@mui/icons-material";
+    useNavigate,
+    useLocation
+} from "react-router-dom";
 
-import { useNavigate } from "react-router-dom";
-
-
-const drawerWidth = 240;
+const drawerWidth = 260;
 
 function Sidebar() {
 
     const navigate = useNavigate();
 
+    const location = useLocation();
+
     const menuItems = [
+
         {
             text: "Dashboard",
-            icon: <Dashboard />,
+            icon: <DashboardIcon />,
             path: "/dashboard"
         },
+
         {
             text: "Employees",
-            icon: <People />,
+            icon: <PeopleIcon />,
             path: "/employees"
         },
+
         {
             text: "Skills",
-            icon: <Psychology />,
+            icon: <SchoolIcon />,
             path: "/skills"
         },
+
         {
             text: "Certifications",
-            icon: <WorkspacePremium />,
+            icon: <AssignmentIcon />,
             path: "/certifications"
         },
+
         {
             text: "Documents",
-            icon: <Description />,
+            icon: <DescriptionIcon />,
             path: "/documents"
         },
+
         {
-            text: "Companies",
-            icon: <Business />,
-            path: "/companies"
+            text: "Resumes",
+            icon: <ArticleIcon />,
+            path: "/resumes"
         },
+
         {
             text: "Jobs",
-            icon: <Work />,
+            icon: <WorkIcon />,
             path: "/jobs"
         },
-        {
-            text: "Recruiter Dashboard",
-            icon: <Dashboard />,
-            path: "/recruiter-dashboard"
-        },
-        {
-            text: "Audit Logs",
-            icon: <Description />,
-            path: "/audit-logs"
-        },
-        {
-            text: "Settings",
-            icon: <Settings />,
-            path: "/settings"
-        },
+
         {
             text: "Interviews",
-            icon: <QuestionAnswer />,
+            icon: <TimelineIcon />,
             path: "/interviews"
         },
+
         {
             text: "Offers",
-            icon: <Work />,
+            icon: <AssignmentIcon />,
             path: "/offers"
         },
+
+        {
+            text: "Pipeline",
+            icon: <TimelineIcon />,
+            path: "/pipeline"
+        },
+
         {
             text: "Analytics",
-            icon: <Dashboard />,
+            icon: <AnalyticsIcon />,
             path: "/analytics"
-        }
+        },
 
+        {
+            text: "Recruiter Notes",
+            icon: <NoteIcon />,
+            path: "/recruiter-notes"
+        },
+
+        {
+            text: "Notifications",
+            icon: <NotificationsIcon />,
+            path: "/notifications"
+        }
     ];
 
     return (
+
         <Drawer
             variant="permanent"
             sx={{
                 width: drawerWidth,
                 flexShrink: 0,
+
                 "& .MuiDrawer-paper": {
+
                     width: drawerWidth,
-                    boxSizing: "border-box"
+
+                    boxSizing: "border-box",
+
+                    borderRight:
+                        "1px solid #e5e7eb",
+
+                    background:
+                        "#ffffff"
                 }
             }}
         >
+
             <Toolbar>
 
                 <Typography
-                    variant="h6"
+                    variant="h5"
                     fontWeight="bold"
+                    color="primary"
                 >
                     DIGINOM
                 </Typography>
 
             </Toolbar>
 
-            <Box sx={{ overflow: "auto" }}>
+            <Divider />
 
-                <List>
+            <List>
 
-                    {menuItems.map((item) => (
+                {menuItems.map((item) => (
 
-                        <ListItem
-                            key={item.text}
-                            disablePadding
-                        >
+                    <ListItemButton
 
-                            <ListItemButton
-                                onClick={() =>
-                                    navigate(item.path)
-                                }
-                            >
+                        key={item.text}
 
-                                <ListItemIcon>
-                                    {item.icon}
-                                </ListItemIcon>
+                        selected={
+                            location.pathname ===
+                            item.path
+                        }
 
-                                <ListItemText
-                                    primary={item.text}
-                                />
+                        onClick={() =>
+                            navigate(item.path)
+                        }
 
-                            </ListItemButton>
+                        sx={{
+                            mx: 1,
+                            mb: 1,
+                            borderRadius: 2
+                        }}
+                    >
 
-                        </ListItem>
+                        <ListItemIcon>
+                            {item.icon}
+                        </ListItemIcon>
 
-                    ))}
+                        <ListItemText
+                            primary={item.text}
+                        />
 
-                </List>
+                    </ListItemButton>
 
-            </Box>
+                ))}
+
+            </List>
 
         </Drawer>
     );

@@ -17,6 +17,8 @@ import {
 
 import api from "../api/api";
 import Sidebar from "../components/Sidebar";
+import ConfirmDialog
+    from "../components/ConfirmDialog";
 import { useNavigate } from "react-router-dom";
 
 function Skills() {
@@ -45,6 +47,13 @@ function Skills() {
                             }
                         }
                     );
+                const [confirmOpen,
+                    setConfirmOpen] =
+                    useState(false);
+
+                const [selectedSkill,
+                    setSelectedSkill] =
+                    useState(null);
 
                 setSkills(response.data);
 
@@ -57,36 +66,57 @@ function Skills() {
         fetchSkills();
 
     }, []);
+    const deleteSkill =
+        async () => {
 
-    const deleteSkill = async (skillId) => {
+            try {
 
-        try {
+                const token =
+                    localStorage.getItem(
+                        "token"
+                    );
 
-            const token =
-                localStorage.getItem("token");
+                await api.delete(
 
-            await api.delete(
-                `/skills/${skillId}`,
-                {
-                    headers: {
-                        Authorization:
-                            `Bearer ${token}`
+                    `/skills/${selectedSkill}`,
+
+                    {
+                        headers: {
+                            Authorization:
+                                `Bearer ${token}`
+                        }
                     }
-                }
-            );
+                );
 
-            setSkills(
-                skills.filter(
-                    (skill) =>
-                        skill.skill_id !== skillId
-                )
-            );
+                setSkills(
 
-        } catch (error) {
+                    prevSkills =>
 
-            console.log(error);
-        }
-    };
+                        prevSkills.filter(
+
+                            skill =>
+
+                                skill.skill_id !==
+
+                                selectedSkill
+                        )
+                );
+
+                setConfirmOpen(
+                    false
+                );
+
+                setSelectedSkill(
+                    null
+                );
+
+            } catch (error) {
+
+                console.log(
+                    error
+                );
+            }
+        };
 
     const filteredSkills =
         skills.filter(
@@ -248,11 +278,17 @@ function Skills() {
                                                 variant="contained"
                                                 color="error"
                                                 size="small"
-                                                onClick={() =>
-                                                    deleteSkill(
+                                                onClick={() => {
+
+                                                    setSelectedSkill(
                                                         skill.skill_id
-                                                    )
-                                                }
+                                                    );
+
+                                                    setConfirmOpen(
+                                                        true
+                                                    );
+
+                                                }}
                                             >
                                                 Delete
                                             </Button>
@@ -269,6 +305,54 @@ function Skills() {
                     </Table>
 
                 </TableContainer>
+                <ConfirmDialog
+
+                    open={confirmOpen}
+
+                    title="Delete Skill"
+
+                    message="Are you sure you want to delete this skill? This action cannot be undone."
+
+                    onConfirm={
+                        deleteSkill
+                    }
+
+                    onCancel={() => {
+
+                        setConfirmOpen(
+                            false
+                        );
+
+                        setSelectedSkill(
+                            null
+                        );
+
+                    }}
+
+                />
+
+
+                open={confirmOpen}
+
+                title="Delete Skill"
+
+                message="Are you sure you want to delete this skill? This action cannot be undone."
+
+                onConfirm={
+                    deleteSkill
+                }
+
+                onCancel={() => {
+
+                    setConfirmOpen(
+                        false
+                    );
+
+                    setSelectedSkill(
+                        null
+                    );
+
+                }}
 
             </Box>
 

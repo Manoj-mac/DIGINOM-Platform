@@ -18,11 +18,20 @@ import {
 import api from "../api/api";
 import Sidebar from "../components/Sidebar";
 import { useNavigate } from "react-router-dom";
+import ConfirmDialog
+    from "../components/ConfirmDialog";
 
 function Certifications() {
 
     const [certifications, setCertifications] = useState([]);
     const [search, setSearch] = useState("");
+    const [confirmOpen,
+        setConfirmOpen] =
+        useState(false);
+
+    const [selectedCertification,
+        setSelectedCertification] =
+        useState(null);
 
     const navigate = useNavigate();
 
@@ -69,46 +78,53 @@ function Certifications() {
                         search.toLowerCase()
                     )
         );
-    const deleteCertification = async (
-        certificationId
-    ) => {
+    const deleteCertification =
+        async () => {
 
-        if (
-            !window.confirm(
-                "Delete this certification?"
-            )
-        ) {
-            return;
-        }
+            try {
 
-        try {
+                const token =
+                    localStorage.getItem(
+                        "token"
+                    );
 
-            const token =
-                localStorage.getItem("token");
+                await api.delete(
 
-            await api.delete(
-                `/certifications/${certificationId}`,
-                {
-                    headers: {
-                        Authorization:
-                            `Bearer ${token}`
+                    `/certifications/${selectedCertification}`,
+
+                    {
+                        headers: {
+                            Authorization:
+                                `Bearer ${token}`
+                        }
                     }
-                }
-            );
+                );
 
-            setCertifications(
-                certifications.filter(
-                    (certification) =>
-                        certification.certification_id !== certificationId
-                )
-            );
+                setCertifications(
 
-        } catch (error) {
+                    certifications.filter(
 
-            console.log(error);
-        }
-    };
+                        (certification) =>
 
+                            certification.certification_id !==
+
+                            selectedCertification
+                    )
+                );
+
+                setConfirmOpen(
+                    false
+                );
+
+                setSelectedCertification(
+                    null
+                );
+
+            } catch (error) {
+
+                console.log(error);
+            }
+        };
     return (
 
         <Box sx={{ display: "flex" }}>
@@ -285,11 +301,17 @@ function Certifications() {
                                                 variant="contained"
                                                 color="error"
                                                 size="small"
-                                                onClick={() =>
-                                                    deleteCertification(
+                                                onClick={() => {
+
+                                                    setSelectedCertification(
                                                         certification.certification_id
-                                                    )
-                                                }
+                                                    );
+
+                                                    setConfirmOpen(
+                                                        true
+                                                    );
+
+                                                }}
                                             >
                                                 Delete
                                             </Button>
@@ -306,6 +328,30 @@ function Certifications() {
                     </Table>
 
                 </TableContainer>
+
+                <ConfirmDialog
+
+                    open={confirmOpen}
+
+                    title="Delete Certification"
+
+                    message="Are you sure you want to delete this certification?"
+
+                    onConfirm={deleteCertification}
+
+                    onCancel={() => {
+
+                        setConfirmOpen(
+                            false
+                        );
+
+                        setSelectedCertification(
+                            null
+                        );
+
+                    }}
+
+                />
 
             </Box>
 

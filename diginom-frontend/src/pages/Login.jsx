@@ -42,6 +42,10 @@ function Login() {
                 "token",
                 response.data.access_token
             );
+            localStorage.setItem(
+                "email",
+                email
+            );
 
             navigate("/dashboard");
 

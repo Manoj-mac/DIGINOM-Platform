@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+
 import {
     Box,
     Typography
@@ -7,38 +8,47 @@ import {
 import api from "../api/api";
 import Sidebar from "../components/Sidebar";
 import DashboardCard from "../components/DashboardCard";
+import NotificationBell from "../components/NotificationBell";
 
 function Dashboard() {
 
-    const [stats, setStats] = useState({});
+    const [stats, setStats] =
+        useState({});
 
     useEffect(() => {
 
-        const fetchStats = async () => {
+        const fetchStats =
+            async () => {
 
-            try {
+                try {
 
-                const token =
-                    localStorage.getItem("token");
+                    const token =
+                        localStorage.getItem(
+                            "token"
+                        );
 
-                const response =
-                    await api.get(
-                        "/dashboard/stats",
-                        {
-                            headers: {
-                                Authorization:
-                                    `Bearer ${token}`
+                    const response =
+                        await api.get(
+
+                            "/dashboard/stats",
+
+                            {
+                                headers: {
+                                    Authorization:
+                                        `Bearer ${token}`
+                                }
                             }
-                        }
+                        );
+
+                    setStats(
+                        response.data
                     );
 
-                setStats(response.data);
+                } catch (error) {
 
-            } catch (error) {
-
-                console.log(error);
-            }
-        };
+                    console.log(error);
+                }
+            };
 
         fetchStats();
 
@@ -46,7 +56,11 @@ function Dashboard() {
 
     return (
 
-        <Box sx={{ display: "flex" }}>
+        <Box
+            sx={{
+                display: "flex"
+            }}
+        >
 
             <Sidebar />
 
@@ -55,26 +69,45 @@ function Dashboard() {
                 sx={{
                     flexGrow: 1,
                     p: 4,
-                    backgroundColor: "#f5f7fa",
-                    minHeight: "100vh"
+                    backgroundColor:
+                        "#f5f7fa",
+                    minHeight:
+                        "100vh"
                 }}
             >
 
-                <Typography
-                    variant="h4"
-                    fontWeight="bold"
-                    gutterBottom
+                <Box
+                    sx={{
+                        display: "flex",
+                        justifyContent:
+                            "space-between",
+                        alignItems:
+                            "center",
+                        mb: 4
+                    }}
                 >
-                    DIGINOM Dashboard 🚀
-                </Typography>
 
-                <Typography
-                    variant="body1"
-                    color="text.secondary"
-                    sx={{ mb: 4 }}
-                >
-                    Talent Intelligence & Verification Platform
-                </Typography>
+                    <Box>
+
+                        <Typography
+                            variant="h4"
+                            fontWeight="bold"
+                        >
+                            DIGINOM Dashboard 🚀
+                        </Typography>
+
+                        <Typography
+                            variant="body1"
+                            color="text.secondary"
+                        >
+                            Talent Intelligence & Verification Platform
+                        </Typography>
+
+                    </Box>
+
+                    <NotificationBell />
+
+                </Box>
 
                 <Box
                     sx={{
@@ -87,32 +120,44 @@ function Dashboard() {
 
                     <DashboardCard
                         title="Employees"
-                        value={stats.employees || 0}
+                        value={
+                            stats.employees || 0
+                        }
                     />
 
                     <DashboardCard
                         title="Skills"
-                        value={stats.skills || 0}
+                        value={
+                            stats.skills || 0
+                        }
                     />
 
                     <DashboardCard
                         title="Certifications"
-                        value={stats.certifications || 0}
+                        value={
+                            stats.certifications || 0
+                        }
                     />
 
                     <DashboardCard
                         title="Documents"
-                        value={stats.documents || 0}
+                        value={
+                            stats.documents || 0
+                        }
                     />
 
                     <DashboardCard
                         title="Jobs"
-                        value={stats.jobs || 0}
+                        value={
+                            stats.jobs || 0
+                        }
                     />
 
                     <DashboardCard
                         title="Verifications"
-                        value={stats.verifications || 0}
+                        value={
+                            stats.verifications || 0
+                        }
                     />
 
                 </Box>

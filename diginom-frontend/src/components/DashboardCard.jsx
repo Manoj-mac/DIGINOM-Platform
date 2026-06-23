@@ -5,16 +5,21 @@ import {
 } from "@mui/material";
 
 function DashboardCard({
+
     title,
     value
+
 }) {
+
     return (
+
         <Card
+            elevation={2}
             sx={{
-                minWidth: 220,
                 borderRadius: 3
             }}
         >
+
             <CardContent>
 
                 <Typography
@@ -31,6 +36,7 @@ function DashboardCard({
                 </Typography>
 
             </CardContent>
+
         </Card>
     );
 }

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+
 import {
     Box,
     Typography,
@@ -18,7 +19,10 @@ import {
 import api from "../api/api";
 import Sidebar from "../components/Sidebar";
 import { useNavigate } from "react-router-dom";
-
+import ConfirmDialog
+    from "../components/ConfirmDialog";
+import AppSnackbar
+    from "../components/AppSnackbar";
 
 function Employees() {
 
@@ -26,9 +30,28 @@ function Employees() {
     const [trustScores, setTrustScores] =
         useState({});
     const [search, setSearch] = useState("");
+
+    const [confirmOpen,
+        setConfirmOpen] =
+        useState(false);
+
+    const [selectedEmployee,
+        setSelectedEmployee] =
+        useState(null);
     const navigate = useNavigate();
 
 
+    const [snackbarOpen,
+        setSnackbarOpen] =
+        useState(false);
+
+    const [snackbarMessage,
+        setSnackbarMessage] =
+        useState("");
+
+    const [snackbarSeverity,
+        setSnackbarSeverity] =
+        useState("success");
     useEffect(() => {
 
         const fetchEmployees = async () => {
@@ -101,54 +124,104 @@ function Employees() {
             }
         };
 
-
         fetchEmployees();
 
     }, []);
 
-    const deleteEmployee = async (employeeId) => {
+    const deleteEmployee =
+        async () => {
 
-        try {
+            try {
 
-            const token =
-                localStorage.getItem("token");
+                const token =
+                    localStorage.getItem(
+                        "token"
+                    );
 
-            await api.delete(
-                `/employees/${employeeId}`,
-                {
-                    headers: {
-                        Authorization:
-                            `Bearer ${token}`
+                await api.delete(
+
+                    `/employees/${selectedEmployee}`,
+
+                    {
+                        headers: {
+                            Authorization:
+                                `Bearer ${token}`
+                        }
                     }
-                }
-            );
+                );
 
-            setEmployees(
-                employees.filter(
-                    (employee) =>
-                        employee.employee_id !== employeeId
-                )
-            );
+                setEmployees(
 
-        } catch (error) {
+                    employees.filter(
 
-            console.log(error);
-        }
-    };
+                        (employee) =>
 
-    const filteredEmployees = employees.filter(
-        (employee) =>
-            employee.first_name
-                ?.toLowerCase()
-                .includes(search.toLowerCase()) ||
-            employee.email
-                ?.toLowerCase()
-                .includes(search.toLowerCase())
-    );
+                            employee.employee_id !==
+
+                            selectedEmployee
+                    )
+                );
+
+                setConfirmOpen(
+                    false
+                );
+
+                setSelectedEmployee(
+                    null
+                );
+
+                setSnackbarMessage(
+                    "Employee deleted successfully"
+                );
+
+                setSnackbarSeverity(
+                    "success"
+                );
+
+                setSnackbarOpen(
+                    true
+                );
+
+            } catch (error) {
+
+                console.log(error);
+
+                setSnackbarMessage(
+                    "Failed to delete employee"
+                );
+
+                setSnackbarSeverity(
+                    "error"
+                );
+
+                setSnackbarOpen(
+                    true
+                );
+            }
+        };
+
+    const filteredEmployees =
+        employees.filter(
+            (employee) =>
+                employee.first_name
+                    ?.toLowerCase()
+                    .includes(
+                        search.toLowerCase()
+                    ) ||
+                employee.email
+                    ?.toLowerCase()
+                    .includes(
+                        search.toLowerCase()
+                    )
+        );
 
     return (
 
-        <Box sx={{ display: "flex" }}>
+        <Box
+            sx={{
+                display: "flex"
+            }}
+        >
 
             <Sidebar />
 
@@ -157,8 +230,10 @@ function Employees() {
                 sx={{
                     flexGrow: 1,
                     p: 4,
-                    backgroundColor: "#f5f7fa",
-                    minHeight: "100vh"
+                    backgroundColor:
+                        "#f5f7fa",
+                    minHeight:
+                        "100vh"
                 }}
             >
 
@@ -176,8 +251,10 @@ function Employees() {
 
                         <Box
                             sx={{
-                                display: "flex",
-                                justifyContent: "space-between",
+                                display:
+                                    "flex",
+                                justifyContent:
+                                    "space-between",
                                 gap: 2
                             }}
                         >
@@ -248,7 +325,9 @@ function Employees() {
                         <TableBody>
 
                             {filteredEmployees.map(
-                                (employee) => (
+                                (
+                                    employee
+                                ) => (
 
                                     <TableRow
                                         key={
@@ -257,32 +336,60 @@ function Employees() {
                                     >
 
                                         <TableCell>
-                                            {
-                                                employee.first_name
-                                            }
+                                            {employee.first_name}
                                         </TableCell>
 
                                         <TableCell>
-                                            {
-                                                employee.email
-                                            }
+                                            {employee.email}
                                         </TableCell>
 
                                         <TableCell>
-                                            {
-                                                employee.role
-                                            }
+                                            {employee.role}
                                         </TableCell>
 
                                         <TableCell>
-                                            {
-                                                trustScores[
-                                                employee.employee_id
-                                                ] || 0
-                                            }
+
+                                            <Typography
+                                                fontWeight="bold"
+                                                sx={{
+                                                    color:
+                                                        (trustScores[
+                                                            employee.employee_id
+                                                        ] || 0) >= 80
+                                                            ? "#16a34a"
+                                                            : (trustScores[
+                                                                employee.employee_id
+                                                            ] || 0) >= 50
+                                                                ? "#f59e0b"
+                                                                : "#dc2626"
+                                                }}
+                                            >
+                                                {
+                                                    trustScores[
+                                                    employee.employee_id
+                                                    ] || 0
+                                                }/100
+                                            </Typography>
+
                                         </TableCell>
 
                                         <TableCell>
+
+                                            <Button
+                                                size="small"
+                                                variant="contained"
+                                                color="success"
+                                                sx={{
+                                                    mr: 1
+                                                }}
+                                                onClick={() =>
+                                                    navigate(
+                                                        `/employee-profile/${employee.employee_id}`
+                                                    )
+                                                }
+                                            >
+                                                Profile
+                                            </Button>
 
                                             <Button
                                                 size="small"
@@ -301,20 +408,41 @@ function Employees() {
 
                                             <Button
                                                 size="small"
-                                                color="error"
-                                                variant="contained"
+                                                variant="outlined"
+                                                color="primary"
+                                                sx={{
+                                                    mr: 1
+                                                }}
                                                 onClick={() =>
-                                                    deleteEmployee(
-                                                        employee.employee_id
+                                                    navigate(
+                                                        `/timeline/${employee.employee_id}`
                                                     )
                                                 }
                                             >
+                                                Timeline
+                                            </Button>
+                                            <Button
+                                                size="small"
+                                                color="error"
+                                                variant="contained"
+                                                onClick={() => {
+
+                                                    setSelectedEmployee(
+                                                        employee.employee_id
+                                                    );
+
+                                                    setConfirmOpen(
+                                                        true
+                                                    );
+
+                                                }}
+                                            >
                                                 Delete
                                             </Button>
-
                                         </TableCell>
 
                                     </TableRow>
+
                                 )
                             )}
 
@@ -323,6 +451,73 @@ function Employees() {
                     </Table>
 
                 </TableContainer>
+
+                <ConfirmDialog
+
+                    open={confirmOpen}
+
+                    title="Delete Employee"
+
+                    message="Are you sure you want to delete this employee? This action cannot be undone."
+
+                    onConfirm={
+                        deleteEmployee
+                    }
+
+                    onCancel={() => {
+
+                        setConfirmOpen(
+                            false
+                        );
+
+                        setSelectedEmployee(
+                            null
+                        );
+
+                    }}
+
+                />
+                <ConfirmDialog
+
+                    open={confirmOpen}
+
+                    title="Delete Employee"
+
+                    message="Are you sure you want to delete this employee? This action cannot be undone."
+
+                    onConfirm={
+                        deleteEmployee
+                    }
+
+                    onCancel={() => {
+
+                        setConfirmOpen(
+                            false
+                        );
+
+                        setSelectedEmployee(
+                            null
+                        );
+
+                    }}
+
+                />
+
+                <AppSnackbar
+
+                    open={snackbarOpen}
+
+                    message={snackbarMessage}
+
+                    severity={snackbarSeverity}
+
+                    onClose={() =>
+                        setSnackbarOpen(
+                            false
+                        )
+                    }
+
+                />
 
             </Box>
 

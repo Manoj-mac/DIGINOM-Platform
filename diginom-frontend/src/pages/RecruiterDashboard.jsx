@@ -9,6 +9,8 @@ import {
 import api from "../api/api";
 import Sidebar from "../components/Sidebar";
 import DashboardCard from "../components/DashboardCard";
+import NotificationBell
+    from "../components/NotificationBell";
 
 function RecruiterDashboard() {
 
@@ -68,14 +70,25 @@ function RecruiterDashboard() {
                 }}
             >
 
-                <Typography
-                    variant="h4"
-                    fontWeight="bold"
-                    gutterBottom
+                <Box
+                    sx={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        mb: 3
+                    }}
                 >
-                    Recruiter Dashboard
-                </Typography>
 
+                    <Typography
+                        variant="h4"
+                        fontWeight="bold"
+                    >
+                        Recruiter Dashboard
+                    </Typography>
+
+                    <NotificationBell />
+
+                </Box>
                 <Grid
                     container
                     spacing={3}
@@ -113,6 +126,33 @@ function RecruiterDashboard() {
                             title="Verified Skills"
                             value={
                                 stats.verified_skills || 0
+                            }
+                        />
+                    </Grid>
+
+                    <Grid item xs={12} sm={6} md={3}>
+                        <DashboardCard
+                            title="Interviews"
+                            value={
+                                stats.total_interviews || 0
+                            }
+                        />
+                    </Grid>
+
+                    <Grid item xs={12} sm={6} md={3}>
+                        <DashboardCard
+                            title="Offers"
+                            value={
+                                stats.total_offers || 0
+                            }
+                        />
+                    </Grid>
+
+                    <Grid item xs={12} sm={6} md={3}>
+                        <DashboardCard
+                            title="Avg Trust Score"
+                            value={
+                                stats.average_trust_score || 0
                             }
                         />
                     </Grid>

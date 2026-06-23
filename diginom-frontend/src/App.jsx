@@ -26,6 +26,19 @@ import Offers from "./pages/Offers";
 import AddOffer from "./pages/AddOffer";
 import EditOffer from "./pages/EditOffer";
 import Analytics from "./pages/Analytics";
+import ResumeUpload from "./pages/ResumeUpload";
+import Resumes from "./pages/Resumes";
+import Recommendations from "./pages/Recommendations";
+import PipelineDashboard
+  from "./pages/PipelineDashboard";
+import Timeline
+  from "./pages/Timeline";
+import RecruiterNotes
+  from "./pages/RecruiterNotes";
+import Notifications
+  from "./pages/Notifications";
+import EmployeeProfile
+  from "./pages/EmployeeProfile";
 function App() {
   return (
     <BrowserRouter>
@@ -134,6 +147,47 @@ function App() {
         <Route
           path="/analytics"
           element={<Analytics />}
+        />
+        <Route
+          path="/resume-upload"
+          element={<ResumeUpload />}
+        />
+
+        <Route
+          path="/resumes"
+          element={<Resumes />}
+        />
+        <Route
+          path="/jobs/:jobId/recommendations"
+          element={<Recommendations />}
+        />
+        <Route
+          path="/pipeline"
+          element={
+            <PipelineDashboard />
+          }
+        />
+        <Route
+
+          path="/timeline/:employeeId"
+
+          element={
+            <Timeline />
+          }
+        />
+        <Route
+          path="/recruiter-notes"
+          element={
+            <RecruiterNotes />
+          }
+        />
+        <Route
+          path="/notifications"
+          element={<Notifications />}
+        />
+        <Route
+          path="/employee-profile/:employeeId"
+          element={<EmployeeProfile />}
         />
       </Routes>
     </BrowserRouter>

@@ -46,6 +46,35 @@ function Login() {
                 "email",
                 email
             );
+            localStorage.setItem(
+                "role",
+                response.data.role
+            );
+
+            localStorage.setItem(
+                "email",
+                response.data.email
+            );
+
+            localStorage.setItem(
+                "username",
+                response.data.username
+            );
+
+            localStorage.setItem(
+                "role",
+                response.data.role
+            );
+
+            localStorage.setItem(
+                "email",
+                response.data.email
+            );
+
+            localStorage.setItem(
+                "username",
+                response.data.username
+            );
 
             navigate("/dashboard");
 

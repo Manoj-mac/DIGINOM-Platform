@@ -20,6 +20,7 @@ import DescriptionIcon from "@mui/icons-material/Description";
 import SchoolIcon from "@mui/icons-material/School";
 import ArticleIcon from "@mui/icons-material/Article";
 import NoteIcon from "@mui/icons-material/Note";
+import PersonIcon from "@mui/icons-material/Person";
 
 import {
     useNavigate,
@@ -30,90 +31,209 @@ const drawerWidth = 260;
 
 function Sidebar() {
 
-    const navigate = useNavigate();
+    const navigate =
+        useNavigate();
 
-    const location = useLocation();
+    const location =
+        useLocation();
 
-    const menuItems = [
+    const role =
+        localStorage
+            .getItem("role")
+            ?.toUpperCase();
 
-        {
-            text: "Dashboard",
-            icon: <DashboardIcon />,
-            path: "/dashboard"
-        },
+    let menuItems = [];
 
-        {
-            text: "Employees",
-            icon: <PeopleIcon />,
-            path: "/employees"
-        },
+    if (role === "ADMIN") {
 
-        {
-            text: "Skills",
-            icon: <SchoolIcon />,
-            path: "/skills"
-        },
+        menuItems = [
 
-        {
-            text: "Certifications",
-            icon: <AssignmentIcon />,
-            path: "/certifications"
-        },
+            {
+                text: "Dashboard",
+                icon: <DashboardIcon />,
+                path: "/dashboard"
+            },
 
-        {
-            text: "Documents",
-            icon: <DescriptionIcon />,
-            path: "/documents"
-        },
+            {
+                text: "Employees",
+                icon: <PeopleIcon />,
+                path: "/employees"
+            },
 
-        {
-            text: "Resumes",
-            icon: <ArticleIcon />,
-            path: "/resumes"
-        },
+            {
+                text: "Skills",
+                icon: <SchoolIcon />,
+                path: "/skills"
+            },
 
-        {
-            text: "Jobs",
-            icon: <WorkIcon />,
-            path: "/jobs"
-        },
+            {
+                text: "Certifications",
+                icon: <AssignmentIcon />,
+                path: "/certifications"
+            },
 
-        {
-            text: "Interviews",
-            icon: <TimelineIcon />,
-            path: "/interviews"
-        },
+            {
+                text: "Documents",
+                icon: <DescriptionIcon />,
+                path: "/documents"
+            },
 
-        {
-            text: "Offers",
-            icon: <AssignmentIcon />,
-            path: "/offers"
-        },
+            {
+                text: "Resumes",
+                icon: <ArticleIcon />,
+                path: "/resumes"
+            },
 
-        {
-            text: "Pipeline",
-            icon: <TimelineIcon />,
-            path: "/pipeline"
-        },
+            {
+                text: "Jobs",
+                icon: <WorkIcon />,
+                path: "/jobs"
+            },
 
-        {
-            text: "Analytics",
-            icon: <AnalyticsIcon />,
-            path: "/analytics"
-        },
+            {
+                text: "Interviews",
+                icon: <TimelineIcon />,
+                path: "/interviews"
+            },
 
-        {
-            text: "Recruiter Notes",
-            icon: <NoteIcon />,
-            path: "/recruiter-notes"
-        },
+            {
+                text: "Offers",
+                icon: <AssignmentIcon />,
+                path: "/offers"
+            },
 
-        {
-            text: "Notifications",
-            icon: <NotificationsIcon />,
-            path: "/notifications"
-        }
-    ];
+            {
+                text: "Pipeline",
+                icon: <TimelineIcon />,
+                path: "/pipeline"
+            },
+
+            {
+                text: "Analytics",
+                icon: <AnalyticsIcon />,
+                path: "/analytics"
+            },
+
+            {
+                text: "Recruiter Notes",
+                icon: <NoteIcon />,
+                path: "/recruiter-notes"
+            },
+
+            {
+                text: "Notifications",
+                icon: <NotificationsIcon />,
+                path: "/notifications"
+            }
+        ];
+    }
+
+    else if (role === "HR") {
+
+        menuItems = [
+
+            {
+                text: "Dashboard",
+                icon: <DashboardIcon />,
+                path: "/dashboard"
+            },
+
+            {
+                text: "Employees",
+                icon: <PeopleIcon />,
+                path: "/employees"
+            },
+
+            {
+                text: "Skills",
+                icon: <SchoolIcon />,
+                path: "/skills"
+            },
+
+            {
+                text: "Certifications",
+                icon: <AssignmentIcon />,
+                path: "/certifications"
+            },
+
+            {
+                text: "Documents",
+                icon: <DescriptionIcon />,
+                path: "/documents"
+            },
+
+            {
+                text: "Notifications",
+                icon: <NotificationsIcon />,
+                path: "/notifications"
+            }
+        ];
+    }
+
+    else if (role === "RECRUITER") {
+
+        menuItems = [
+
+            {
+                text: "Dashboard",
+                icon: <DashboardIcon />,
+                path: "/dashboard"
+            },
+
+            {
+                text: "Jobs",
+                icon: <WorkIcon />,
+                path: "/jobs"
+            },
+
+            {
+                text: "Interviews",
+                icon: <TimelineIcon />,
+                path: "/interviews"
+            },
+
+            {
+                text: "Offers",
+                icon: <AssignmentIcon />,
+                path: "/offers"
+            },
+
+            {
+                text: "Pipeline",
+                icon: <TimelineIcon />,
+                path: "/pipeline"
+            },
+
+            {
+                text: "Recruiter Notes",
+                icon: <NoteIcon />,
+                path: "/recruiter-notes"
+            },
+
+            {
+                text: "Notifications",
+                icon: <NotificationsIcon />,
+                path: "/notifications"
+            }
+        ];
+    }
+
+    else {
+
+        menuItems = [
+
+            {
+                text: "Employees",
+                icon: <PeopleIcon />,
+                path: "/employees"
+            },
+            {
+                text: "Notifications",
+                icon: <NotificationsIcon />,
+                path: "/notifications"
+            }
+        ];
+    }
 
     return (
 
@@ -166,7 +286,9 @@ function Sidebar() {
                         }
 
                         onClick={() =>
-                            navigate(item.path)
+                            navigate(
+                                item.path
+                            )
                         }
 
                         sx={{

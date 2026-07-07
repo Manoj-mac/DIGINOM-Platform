@@ -195,6 +195,9 @@ function Certifications() {
                         <TableHead>
 
                             <TableRow>
+                                <TableCell>
+                                    Employee
+                                </TableCell>
 
                                 <TableCell>
                                     Certification
@@ -234,6 +237,9 @@ function Certifications() {
                                             certification.certification_id
                                         }
                                     >
+                                        <TableCell>
+                                            {certification.employee_name}
+                                        </TableCell>
 
                                         <TableCell>
                                             {

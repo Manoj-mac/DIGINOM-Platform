@@ -1,6 +1,12 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from app.models import Employee
+from app.employee_timeline_crud import (
+    create_timeline_event
+)
+from app.notification_crud import (
+    create_notification
+)
 
 
 def generate_diginom_id(db: Session):
@@ -60,6 +66,29 @@ def create_employee(db: Session, employee):
     db.add(db_employee)
     db.commit()
     db.refresh(db_employee)
+    create_notification(
+
+    db,
+
+    db_employee.email,
+
+    "Welcome To DIGINOM",
+
+    "Your employee profile has been created."
+)
+
+    create_timeline_event(
+
+    db,
+
+    str(
+        db_employee.employee_id
+    ),
+
+    "EMPLOYEE_CREATED",
+
+    "Employee profile created"
+)
 
     return {
         "employee_id": str(db_employee.employee_id),
@@ -77,6 +106,13 @@ def get_employees(db: Session):
 def get_employee_by_id(db: Session, employee_id: str):
     return db.query(Employee).filter(
         Employee.employee_id == employee_id
+    ).first()
+def get_employee_by_email(
+    db: Session,
+    email: str
+):
+    return db.query(Employee).filter(
+        Employee.email == email
     ).first()
 
 

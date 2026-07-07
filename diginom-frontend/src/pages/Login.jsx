@@ -42,10 +42,22 @@ function Login() {
                 "token",
                 response.data.access_token
             );
+
             localStorage.setItem(
                 "email",
-                email
+                response.data.email
             );
+
+            localStorage.setItem(
+                "employee_id",
+                response.data.employee_id
+            );
+
+            localStorage.setItem(
+                "diginom_id",
+                response.data.diginom_id
+            );
+
             localStorage.setItem(
                 "role",
                 response.data.role
@@ -61,23 +73,38 @@ function Login() {
                 response.data.username
             );
 
-            localStorage.setItem(
-                "role",
+            const role =
                 response.data.role
-            );
+                    ?.toUpperCase();
 
-            localStorage.setItem(
-                "email",
-                response.data.email
-            );
+            if (role === "ADMIN") {
 
-            localStorage.setItem(
-                "username",
-                response.data.username
-            );
+                navigate(
+                    "/dashboard"
+                );
 
-            navigate("/dashboard");
+            } else if (
+                role === "HR"
+            ) {
 
+                navigate(
+                    "/hr-dashboard"
+                );
+
+            } else if (
+                role === "RECRUITER"
+            ) {
+
+                navigate(
+                    "/recruiter-dashboard"
+                );
+
+            } else {
+
+                navigate(
+                    "/employee-dashboard"
+                );
+            }
         } catch (error) {
 
             console.log(error);

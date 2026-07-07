@@ -39,6 +39,13 @@ import Notifications
   from "./pages/Notifications";
 import EmployeeProfile
   from "./pages/EmployeeProfile";
+import ProtectedRoute
+  from "./routes/ProtectedRoute";
+import HRDashboard
+  from "./pages/HRDashboard";
+
+import EmployeeDashboard
+  from "./pages/EmployeeDashboard";
 function App() {
   return (
     <BrowserRouter>
@@ -96,7 +103,16 @@ function App() {
         />
         <Route
           path="/jobs"
-          element={<Jobs />}
+          element={
+            <ProtectedRoute
+              allowedRoles={[
+                "ADMIN",
+                "RECRUITER"
+              ]}
+            >
+              <Jobs />
+            </ProtectedRoute>
+          }
         />
 
         <Route
@@ -146,7 +162,15 @@ function App() {
         />
         <Route
           path="/analytics"
-          element={<Analytics />}
+          element={
+            <ProtectedRoute
+              allowedRoles={[
+                "ADMIN"
+              ]}
+            >
+              <Analytics />
+            </ProtectedRoute>
+          }
         />
         <Route
           path="/resume-upload"
@@ -188,6 +212,30 @@ function App() {
         <Route
           path="/employee-profile/:employeeId"
           element={<EmployeeProfile />}
+        />
+        <Route
+          path="/employees"
+          element={<Employees />}
+        />
+        <Route
+          path="/hr-dashboard"
+          element={
+            <ProtectedRoute
+              allowedRoles={[
+                "ADMIN",
+                "HR"
+              ]}
+            >
+              <HRDashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/employee-dashboard"
+          element={
+            <EmployeeDashboard />
+          }
         />
       </Routes>
     </BrowserRouter>

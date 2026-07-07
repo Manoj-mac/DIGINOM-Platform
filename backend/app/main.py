@@ -1,7 +1,22 @@
 from app.roles import admin_required
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI,Depends
+from app.database import (
+    Base,
+    engine
+)
+
+from app.notification import (
+    Notification
+)
+
+app = FastAPI(
+    title="DIGINOM",
+    description="Digital Identity & Recruitment Management Platform",
+    version="1.0.0"
+)
 from sqlalchemy.orm import Session
 from app.models import Employee
+from app.resume import Resume
 
 from app.auth import router as auth_router
 from app.dependencies import verify_token
@@ -103,6 +118,7 @@ from app.verification_crud import (
 
 from app.certifications import Certification
 from datetime import datetime
+from app.notification import Notification
 
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
@@ -110,7 +126,14 @@ from fastapi.responses import FileResponse
 from app.email_service import (
     send_email
 )
-app = FastAPI()
+from fastapi import UploadFile
+from fastapi import File
+
+from app.resume_crud import (
+    parse_resume,
+    create_resume
+)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -137,11 +160,25 @@ from app.recruiter_notes_crud import (
     get_notes
 )
 
+from app.recruiter_note_schema import (
+    RecruiterNoteCreate
+)
+
+from app.recruiter_note_crud import (
+    create_note,
+    get_notes
+)
+
 from app.interview_pipeline_crud import (
+    get_pipeline_stats,
     create_pipeline,
     get_pipelines,
-    get_pipeline_by_id,
     update_pipeline_stage
+)
+
+
+from app.interview_pipeline_crud import (
+    get_pipeline_stats
 )
 
 from app.job_requisition_crud import (
@@ -185,9 +222,53 @@ from app.offer_crud import (
 from app.pdf_service import (
     generate_offer_letter
 )
+from app.candidate_recommendation_crud import (
+    get_candidate_recommendations
+)
 
 from app.interview_pipeline import InterviewPipeline
 from datetime import datetime
+
+from app.employee_timeline_crud import (
+    create_timeline_event,
+    get_employee_timeline
+)
+
+from app.recruiter_notes_crud import (
+    create_note,
+    get_notes
+)
+
+from app.recruiter_note_schema import (
+    RecruiterNoteCreate
+)
+
+from app.notification import Notification
+
+from app.notification_schema import (
+    NotificationCreate
+)
+
+from app.notification_crud import (
+
+    create_notification,
+
+    get_notifications,
+
+    mark_as_read
+)
+
+from app.trust_score_crud import (
+    calculate_trust_score
+)
+
+from app.roles import (
+    hr_required
+)
+
+Base.metadata.create_all(
+    bind=engine
+)
 
 
 
@@ -640,6 +721,137 @@ DIGINOM Recruitment Team
         "message":
         "Interview email sent"
     }
+
+@app.post("/resume/upload")
+async def upload_resume(
+
+    file: UploadFile = File(...),
+
+    db: Session = Depends(get_db),
+
+    token: dict = Depends(
+        verify_token
+    )
+):
+
+    file_location = (
+        f"uploads/{file.filename}"
+    )
+
+    with open(
+        file_location,
+        "wb"
+    ) as buffer:
+
+        buffer.write(
+            await file.read()
+        )
+
+    parsed_data = parse_resume(
+        file_location
+    )
+
+    saved_resume = create_resume(
+
+        db,
+
+        file.filename,
+
+        parsed_data["name"],
+
+        parsed_data["email"],
+
+        parsed_data["phone"],
+
+        parsed_data["skills"],
+
+        file_location
+    )
+
+    return {
+
+        "message":
+            "Resume uploaded successfully",
+
+        "resume":
+            saved_resume
+    }
+
+    file: UploadFile = File(...),
+
+    token: dict = Depends(
+        verify_token
+    )
+
+
+    file_location = (
+        f"uploads/{file.filename}"
+    )
+
+    with open(
+        file_location,
+        "wb"
+    ) as buffer:
+
+        buffer.write(
+            await file.read()
+        )
+
+    result = parse_resume(
+        file_location
+    )
+
+    return result
+
+@app.post(
+    "/recruiter-notes"
+)
+def add_recruiter_note(
+
+    note_data: RecruiterNoteCreate,
+
+    db: Session = Depends(
+        get_db
+    ),
+
+    token: dict = Depends(
+        verify_token
+    )
+):
+
+    return create_note(
+
+        db,
+
+        token["sub"],
+
+        note_data.employee_id,
+
+        note_data.note
+    )
+
+@app.post("/notifications")
+def add_notification(
+
+    data: NotificationCreate,
+
+    db: Session = Depends(get_db),
+
+    token: dict = Depends(
+        verify_token
+    )
+):
+
+    return create_notification(
+
+        db,
+
+        data.user_email,
+
+        data.title,
+
+        data.message
+    )
 # GET ALL EMPLOYEES (LOGGED-IN USERS)
 @app.get("/employees")
 def list_employees(
@@ -881,6 +1093,27 @@ def add_job(
         "status": result.status
     }
 
+@app.post("/recruiter-notes")
+def add_recruiter_note(
+
+    data: RecruiterNoteCreate,
+
+    db: Session = Depends(get_db),
+
+    token: dict = Depends(verify_token)
+):
+
+    return create_note(
+
+        db,
+
+        data.recruiter_email,
+
+        data.employee_id,
+
+        data.note
+    )
+
 @app.get("/companies")
 def list_companies(
     db: Session = Depends(get_db),
@@ -1033,64 +1266,57 @@ def verified_employees(
         }
         for emp in employees
     ]
-@app.get("/employees/{employee_id}/trust-score")
-def get_trust_score(
-    employee_id: str,
-    db: Session = Depends(get_db),
-    token: dict = Depends(verify_token)
+
+
+@app.get(
+    "/recruiter-notes"
+)
+def list_recruiter_notes(
+
+    db: Session = Depends(
+        get_db
+    ),
+
+    token: dict = Depends(
+        verify_token
+    )
 ):
 
-    score = 0
+    notes = get_notes(
 
-    # Skills
-    employee_skills = [
-        s for s in get_skills(db)
-        if str(s["employee_id"]) == employee_id
-    ]
+        db,
 
-    if any(
-        skill["verified"]
-        for skill in employee_skills
-    ):
-        score += 20
+        token["sub"]
+    )
 
-    # Certifications
-    employee_certifications = [
-        c for c in get_certifications(db)
-        if str(c.employee_id) == employee_id
-    ]
+    result = []
 
-    if any(
-        cert.verified
-        for cert in employee_certifications
-    ):
-        score += 30
+    for note in notes:
 
-    # Documents
-    employee_documents = [
-        d for d in get_documents(db)
-        if str(d["employee_id"]) == employee_id
-    ]
+        result.append({
 
-    if any(
-        doc["verified"]
-        for doc in employee_documents
-    ):
-        score += 30
+            "note_id":
+                str(
+                    note.note_id
+                ),
 
-    # Employment History
-    employee_history = [
-        h for h in get_employment_history(db)
-        if str(h.employee_id) == employee_id
-    ]
+            "employee_id":
+                note.employee_id,
 
-    if len(employee_history) > 0:
-        score += 20
+            "recruiter_email":
+                note.recruiter_email,
 
-    return {
-        "employee_id": employee_id,
-        "trust_score": score
-    }
+            "note":
+                note.note,
+
+            "created_at":
+                str(
+                    note.created_at
+                )
+        })
+
+    return result
+
 
 @app.get("/dashboard-summary")
 def dashboard_summary(
@@ -1150,7 +1376,9 @@ def search_skill(
 
             employee = get_employee_by_id(
                 db,
-                str(s.employee_id)
+                str(
+    s.employee_id
+)
             )
 
             if employee:
@@ -1463,6 +1691,7 @@ def pipeline_summary(
         "hired":
         len([p for p in pipelines if p.stage == "HIRED"])
     }
+    
 
 @app.get("/jobs")
 def list_jobs(
@@ -1573,6 +1802,26 @@ def match_candidates(
 
     return matches
 
+@app.get(
+    "/jobs/{job_id}/recommendations"
+)
+def job_recommendations(
+
+    job_id: str,
+
+    db: Session = Depends(
+        get_db
+    ),
+
+    token: dict = Depends(
+        verify_token
+    )
+):
+
+    return get_candidate_recommendations(
+        db,
+        job_id
+    )
 
 @app.get("/dashboard/stats")
 def dashboard_stats(
@@ -1591,29 +1840,84 @@ def dashboard_stats(
 
 @app.get("/recruiter-dashboard")
 def recruiter_dashboard(
+
     db: Session = Depends(get_db),
-    token: dict = Depends(verify_token)
+
+    token: dict = Depends(
+        verify_token
+    )
 ):
+
+    jobs = get_jobs(db)
+
+    employees = get_employees(db)
+
+    skills = get_skills(db)
+
+    interviews = get_interviews(db)
+
+    offers = get_offers(db)
+
+    total_trust_score = 0
+
+    for employee in employees:
+
+        try:
+
+            total_trust_score += (
+                calculate_trust_score(
+                    db,
+                    str(
+                        employee.employee_id
+                    )
+                )
+            )
+
+        except:
+
+            pass
+
+    average_trust_score = 0
+
+    if len(employees) > 0:
+
+        average_trust_score = round(
+
+            total_trust_score /
+
+            len(employees),
+
+            2
+        )
+
     return {
 
         "total_jobs":
-        len(get_jobs(db)),
+            len(jobs),
 
         "open_jobs":
-        len([
-            j for j in get_jobs(db)
-            if j.status == "OPEN"
-        ]),
+            len([
+                j for j in jobs
+                if j.status == "OPEN"
+            ]),
 
         "total_employees":
-        len(get_employees(db)),
+            len(employees),
 
         "verified_skills":
-        len([
-            s for s in get_skills(db)
-            if s["verified"]
-        ])
-        
+            len([
+                s for s in skills
+                if s["verified"]
+            ]),
+
+        "total_interviews":
+            len(interviews),
+
+        "total_offers":
+            len(offers),
+
+        "average_trust_score":
+            average_trust_score
     }
 @app.get("/interviews")
 def list_interviews(
@@ -1710,6 +2014,69 @@ def generate_offer_pdf(
         filename=filename
     )
 
+@app.get("/resumes")
+def get_resumes(
+
+    db: Session = Depends(get_db),
+
+    token: dict = Depends(
+        verify_token
+    )
+):
+
+    resumes = db.query(
+        Resume
+    ).all()
+
+    result = []
+
+    for resume in resumes:
+
+        result.append({
+
+            "resume_id":
+                str(
+                    resume.resume_id
+                ),
+
+            "file_name":
+                resume.file_name,
+
+            "candidate_name":
+                resume.candidate_name,
+
+            "email":
+                resume.email,
+
+            "phone":
+                resume.phone,
+
+            "skills":
+                resume.skills,
+
+            "file_path":
+                resume.file_path
+        })
+
+    return result
+
+@app.get("/recruiter-notes/{recruiter_email}")
+def recruiter_notes(
+
+    recruiter_email: str,
+
+    db: Session = Depends(get_db),
+
+    token: dict = Depends(verify_token)
+):
+
+    return get_notes(
+
+        db,
+
+        recruiter_email
+    )
+
 
 @app.put("/companies/{company_id}")
 def edit_company(
@@ -1729,8 +2096,176 @@ def edit_company(
 
     return updated_company
 
+@app.get(
+    "/pipeline/dashboard"
+)
+def pipeline_dashboard(
 
+    db: Session = Depends(
+        get_db
+    ),
 
+    token: dict = Depends(
+        verify_token
+    )
+):
+
+    return get_pipeline_stats(
+        db
+    )
+
+@app.get(
+    "/employees/{employee_id}/timeline"
+)
+def employee_timeline(
+
+    employee_id: str,
+
+    db: Session = Depends(
+        get_db
+    ),
+
+    token: dict = Depends(
+        verify_token
+    )
+):
+
+    timeline = get_employee_timeline(
+
+        db,
+
+        employee_id
+    )
+
+    result = []
+
+    for item in timeline:
+
+        result.append({
+
+            "event_type":
+                item.event_type,
+
+            "event_description":
+                item.event_description,
+
+            "created_at":
+                str(
+                    item.created_at
+                )
+        })
+
+    return result
+
+@app.get(
+    "/notifications/{user_email}"
+)
+def notifications(
+
+    user_email: str,
+
+    db: Session = Depends(
+        get_db
+    ),
+
+    token: dict = Depends(
+        verify_token
+    )
+):
+
+    return get_notifications(
+
+        db,
+
+        user_email
+    )
+
+@app.get("/employees/{employee_id}/trust-score")
+def get_trust_score(
+    employee_id: str,
+    db: Session = Depends(get_db),
+    token: dict = Depends(verify_token)
+):
+
+    score = calculate_trust_score(
+        db,
+        employee_id
+    )
+
+    print("ROUTE SCORE =", score)
+
+    return {
+        "employee_id": employee_id,
+        "trust_score": score
+    }
+
+@app.get(
+    "/notifications/{user_email}/count"
+)
+def notification_count(
+
+    user_email: str,
+
+    db: Session = Depends(
+        get_db
+    ),
+
+    token: dict = Depends(
+        verify_token
+    )
+):
+
+    notifications = get_notifications(
+
+        db,
+
+        user_email
+    )
+
+    return {
+
+        "count":
+            len(notifications)
+    }
+@app.get("/hr-dashboard")
+def hr_dashboard(
+    db: Session = Depends(get_db),
+    token: dict = Depends(hr_required)
+):
+
+    total_employees = len(
+        get_employees(db)
+    )
+
+    pending_documents = len([
+        d for d in get_documents(db)
+        if not d["verified"]
+    ])
+
+    pending_certifications = len([
+        c for c in get_certifications(db)
+        if not c.verified
+    ])
+
+    verified_employees = len([
+        e for e in get_employees(db)
+        if e.status == "ACTIVE"
+    ])
+
+    return {
+
+        "total_employees":
+            total_employees,
+
+        "pending_documents":
+            pending_documents,
+
+        "pending_certifications":
+            pending_certifications,
+
+        "verified_employees":
+            verified_employees
+    }
 
 # UPDATE EMPLOYEE (ADMIN ONLY)
 @app.put("/employees/{employee_id}")
@@ -1981,6 +2516,29 @@ def edit_offer(
         }
 
     return updated_offer
+
+@app.put(
+    "/notifications/{notification_id}/read"
+)
+def read_notification(
+
+    notification_id: str,
+
+    db: Session = Depends(
+        get_db
+    ),
+
+    token: dict = Depends(
+        verify_token
+    )
+):
+
+    return mark_as_read(
+
+        db,
+
+        notification_id
+    )
 
 # DELETE EMPLOYEE (ADMIN ONLY)
 @app.delete("/companies/{company_id}")

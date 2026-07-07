@@ -131,3 +131,4 @@ class JobCreate(BaseModel):
 class JobUpdate(BaseModel):
     status: str
     
+    

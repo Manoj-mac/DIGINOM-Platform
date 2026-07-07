@@ -1,5 +1,8 @@
 from app.skills import Skill
 from app.models import Employee
+from app.employee_timeline_crud import (
+    create_timeline_event
+)
 
 
 def create_skill(db, skill):
@@ -87,6 +90,17 @@ def update_skill(db, skill_id, skill_data):
 
     db.commit()
     db.refresh(skill)
+
+    create_timeline_event(
+
+    db,
+
+    skill.employee_id,
+
+    "SKILL_ADDED",
+
+    f"Skill added: {skill.skill_name}"
+)
 
     return  {
     "skill_id": str(skill.skill_id),

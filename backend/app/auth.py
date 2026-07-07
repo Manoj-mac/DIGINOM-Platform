@@ -8,7 +8,7 @@ from app.security import (
     create_access_token,
     verify_password
 )
-
+from app.crud import get_employee_by_email
 router = APIRouter()
 
 
@@ -29,6 +29,10 @@ def login(
         db,
         form_data.username
     )
+    employee = get_employee_by_email(
+    db,
+    db_user.email
+)
 
     if not db_user:
         raise HTTPException(
@@ -53,6 +57,17 @@ def login(
     )
 
     return {
-        "access_token": token,
-        "token_type": "bearer"
-    }
+    "access_token": token,
+    "token_type": "bearer",
+    "role": db_user.role,
+    "email": db_user.email,
+    "username": db_user.username,
+
+    "employee_id":
+        str(employee.employee_id)
+        if employee else None,
+
+    "diginom_id":
+        employee.diginom_id
+        if employee else None
+}

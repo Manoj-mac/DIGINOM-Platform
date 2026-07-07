@@ -7,11 +7,10 @@ function ProtectedRoute({
     allowedRoles
 
 }) {
-
     const role =
-        localStorage.getItem(
-            "role"
-        );
+        localStorage
+            .getItem("role")
+            ?.toUpperCase();
 
     if (
         !allowedRoles.includes(

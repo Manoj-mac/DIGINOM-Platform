@@ -1,71 +1,73 @@
-from app.interview_pipeline import InterviewPipeline
-from datetime import datetime
+from app.interview import Interview
 
+
+def get_pipeline_stats(
+    db
+):
+
+    interviews = db.query(
+        Interview
+    ).all()
+
+    stats = {
+
+        "Applied": 0,
+        "Screening": 0,
+        "Technical": 0,
+        "HR": 0,
+        "Selected": 0,
+        "Rejected": 0
+    }
+
+    for interview in interviews:
+
+        status = (
+            interview.status
+            or ""
+        ).upper()
+
+        if status == "APPLIED":
+            stats["Applied"] += 1
+
+        elif status == "SCREENING":
+            stats["Screening"] += 1
+
+        elif status == "TECHNICAL":
+            stats["Technical"] += 1
+
+        elif status == "HR":
+            stats["HR"] += 1
+
+        elif status == "SELECTED":
+            stats["Selected"] += 1
+
+        elif status == "REJECTED":
+            stats["Rejected"] += 1
+
+    return stats
 
 def create_pipeline(
     db,
-    recruiter_email,
-    employee_id,
-    remarks=None
+    pipeline_data
 ):
-
-    pipeline = InterviewPipeline(
-        recruiter_email=recruiter_email,
-        employee_id=employee_id,
-        stage="SHORTLISTED",
-        remarks=remarks
-    )
-
-    db.add(pipeline)
-    db.commit()
-    db.refresh(pipeline)
-
-    return pipeline
+    return {
+        "message":
+        "Pipeline created"
+    }
 
 
-def get_pipelines(db):
-
-    return db.query(
-        InterviewPipeline
-    ).all()
-
-
-def get_pipeline_by_id(
-    db,
-    pipeline_id
+def get_pipelines(
+    db
 ):
-
-    return db.query(
-        InterviewPipeline
-    ).filter(
-        InterviewPipeline.pipeline_id == pipeline_id
-    ).first()
+    return []
 
 
 def update_pipeline_stage(
     db,
     pipeline_id,
-    stage,
-    remarks=None
+    stage
 ):
-
-    pipeline = db.query(
-        InterviewPipeline
-    ).filter(
-        InterviewPipeline.pipeline_id == pipeline_id
-    ).first()
-
-    if not pipeline:
-        return None
-
-    pipeline.stage = stage
-
-    if remarks:
-        pipeline.remarks = remarks
-
-    pipeline.updated_at = datetime.utcnow()
-
-    db.commit()
-    db.refresh(pipeline)
-
-    return pipeline
+    return {
+        "message":
+        "Pipeline updated"
+    }

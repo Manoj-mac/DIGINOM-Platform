@@ -2,6 +2,18 @@ from datetime import datetime
 
 from app.interview import Interview
 
+from app.employee_timeline_crud import (
+    create_timeline_event
+)
+
+from app.notification_crud import (
+    create_notification
+)
+
+from app.crud import (
+    get_employee_by_id
+)
+
 
 def create_interview(
     db,
@@ -34,6 +46,37 @@ def create_interview(
     db.commit()
 
     db.refresh(new_interview)
+
+    create_timeline_event(
+
+        db,
+
+        new_interview.employee_id,
+
+        "INTERVIEW_SCHEDULED",
+
+        "Interview scheduled"
+    )
+
+    employee = get_employee_by_id(
+
+        db,
+
+        str(new_interview.employee_id)
+    )
+
+    if employee:
+
+        create_notification(
+
+            db,
+
+            employee.email,
+
+            "Interview Scheduled",
+
+            "Your interview has been scheduled."
+        )
 
     return {
 
@@ -110,6 +153,7 @@ def update_interview(
     db.refresh(interview)
 
     return {
+
         "interview_id":
             str(interview.interview_id),
 
@@ -134,32 +178,6 @@ def update_interview(
         "feedback":
             interview.feedback
     }
-    db,
-    interview_id,
-    interview_data
-
-
-    interview = get_interview_by_id(
-        db,
-        interview_id
-    )
-
-    if not interview:
-        return None
-
-    interview.status = (
-        interview_data.status
-    )
-
-    interview.feedback = (
-        interview_data.feedback
-    )
-
-    db.commit()
-
-    db.refresh(interview)
-
-    return interview
 
 
 def delete_interview(
@@ -180,6 +198,7 @@ def delete_interview(
     db.commit()
 
     return {
+
         "message":
         "Interview deleted successfully"
     }

@@ -1,6 +1,7 @@
 from app.employment_history import EmploymentHistory
 
 
+
 def create_employment_history(db, history):
     new_history = EmploymentHistory(
         employee_id=history.employee_id,
@@ -31,3 +32,37 @@ def get_employment_history_by_id(
     ).filter(
         EmploymentHistory.history_id == history_id
     ).first()
+
+
+def create_history_event(
+
+    db,
+
+    employee_id,
+
+    event_type,
+
+    event_description
+):
+
+    event = EmploymentHistory(
+
+        employee_id=
+            employee_id,
+
+        event_type=
+            event_type,
+
+        event_description=
+            event_description
+    )
+
+    db.add(
+        event
+    )
+
+    db.commit()
+
+    return event
+
+

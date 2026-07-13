@@ -6,7 +6,10 @@ import {
     ListItemText,
     Toolbar,
     Typography,
-    Divider
+    Divider,
+    Box,
+    Avatar,
+    Chip
 } from "@mui/material";
 
 import DashboardIcon from "@mui/icons-material/Dashboard";
@@ -20,33 +23,36 @@ import DescriptionIcon from "@mui/icons-material/Description";
 import SchoolIcon from "@mui/icons-material/School";
 import ArticleIcon from "@mui/icons-material/Article";
 import NoteIcon from "@mui/icons-material/Note";
-import PersonIcon from "@mui/icons-material/Person";
 
 import {
     useNavigate,
     useLocation
 } from "react-router-dom";
 
-const drawerWidth = 260;
+const drawerWidth = 300;
 
 function Sidebar() {
 
-    const navigate =
-        useNavigate();
-
-    const location =
-        useLocation();
+    const navigate = useNavigate();
+    const location = useLocation();
 
     const role =
         localStorage
             .getItem("role")
-            ?.toUpperCase();
+            ?.toUpperCase() || "EMPLOYEE";
+
+    const employeeName =
+        localStorage.getItem("employee_name") || "Employee";
 
     let menuItems = [];
 
     if (role === "ADMIN") {
 
         menuItems = [
+
+            {
+                section: "MAIN"
+            },
 
             {
                 text: "Dashboard",
@@ -85,6 +91,10 @@ function Sidebar() {
             },
 
             {
+                section: "RECRUITMENT"
+            },
+
+            {
                 text: "Jobs",
                 icon: <WorkIcon />,
                 path: "/jobs"
@@ -109,6 +119,10 @@ function Sidebar() {
             },
 
             {
+                section: "SYSTEM"
+            },
+
+            {
                 text: "Analytics",
                 icon: <AnalyticsIcon />,
                 path: "/analytics"
@@ -125,7 +139,9 @@ function Sidebar() {
                 icon: <NotificationsIcon />,
                 path: "/notifications"
             }
+
         ];
+
     }
 
     else if (role === "HR") {
@@ -133,9 +149,13 @@ function Sidebar() {
         menuItems = [
 
             {
+                section: "MAIN"
+            },
+
+            {
                 text: "Dashboard",
                 icon: <DashboardIcon />,
-                path: "/dashboard"
+                path: "/hr-dashboard"
             },
 
             {
@@ -163,11 +183,17 @@ function Sidebar() {
             },
 
             {
+                section: "SYSTEM"
+            },
+
+            {
                 text: "Notifications",
                 icon: <NotificationsIcon />,
                 path: "/notifications"
             }
+
         ];
+
     }
 
     else if (role === "RECRUITER") {
@@ -175,9 +201,13 @@ function Sidebar() {
         menuItems = [
 
             {
+                section: "RECRUITMENT"
+            },
+
+            {
                 text: "Dashboard",
                 icon: <DashboardIcon />,
-                path: "/dashboard"
+                path: "/recruiter-dashboard"
             },
 
             {
@@ -211,11 +241,17 @@ function Sidebar() {
             },
 
             {
+                section: "SYSTEM"
+            },
+
+            {
                 text: "Notifications",
                 icon: <NotificationsIcon />,
                 path: "/notifications"
             }
+
         ];
+
     }
 
     else {
@@ -223,97 +259,327 @@ function Sidebar() {
         menuItems = [
 
             {
-                text: "Employees",
-                icon: <PeopleIcon />,
-                path: "/employees"
+                section: "WORKSPACE"
             },
+
+            {
+                text: "Dashboard",
+                icon: <DashboardIcon />,
+                path: "/employee-dashboard"
+            },
+
+            {
+                text: "Profile",
+                icon: <PeopleIcon />,
+                path: "/employee-profile"
+            },
+
             {
                 text: "Notifications",
                 icon: <NotificationsIcon />,
                 path: "/notifications"
             }
+
         ];
+
     }
 
     return (
 
         <Drawer
+
             variant="permanent"
+
             sx={{
+
                 width: drawerWidth,
+
                 flexShrink: 0,
 
                 "& .MuiDrawer-paper": {
 
                     width: drawerWidth,
 
-                    boxSizing: "border-box",
+                    background:
+                        "rgba(15,23,42,.92)",
+
+                    backdropFilter:
+                        "blur(25px)",
 
                     borderRight:
-                        "1px solid #e5e7eb",
+                        "1px solid rgba(255,255,255,.08)",
 
-                    background:
-                        "#ffffff"
+                    color: "#ffffff",
+
+                    boxSizing: "border-box",
+
+                    overflowX: "hidden"
+
                 }
+
             }}
+
         >
 
             <Toolbar>
 
-                <Typography
-                    variant="h5"
-                    fontWeight="bold"
-                    color="primary"
-                >
-                    DIGINOM
-                </Typography>
+                <Box>
+
+                    <Typography
+
+                        variant="h4"
+
+                        fontWeight="800"
+
+                        sx={{
+
+                            color: "#00E5FF",
+
+                            letterSpacing: 1
+
+                        }}
+
+                    >
+
+                        DIGINOM
+
+                    </Typography>
+
+                    <Typography
+
+                        variant="caption"
+
+                        sx={{
+
+                            color: "#94A3B8"
+
+                        }}
+
+                    >
+
+                        Workforce Identity Platform
+
+                    </Typography>
+
+                </Box>
 
             </Toolbar>
 
-            <Divider />
+            <Divider sx={{ borderColor: "rgba(255,255,255,.08)" }} />
 
-            <List>
+            <List sx={{ px: 2, mt: 2 }}>
 
-                {menuItems.map((item) => (
+                {menuItems.map((item, index) => {
 
-                    <ListItemButton
+                    if (item.section) {
 
-                        key={item.text}
+                        return (
 
-                        selected={
-                            location.pathname ===
-                            item.path
-                        }
+                            <Typography
 
-                        onClick={() =>
-                            navigate(
-                                item.path
-                            )
-                        }
+                                key={index}
 
-                        sx={{
-                            mx: 1,
-                            mb: 1,
-                            borderRadius: 2
-                        }}
-                    >
+                                sx={{
 
-                        <ListItemIcon>
-                            {item.icon}
-                        </ListItemIcon>
+                                    color: "#64748B",
 
-                        <ListItemText
-                            primary={item.text}
-                        />
+                                    fontSize: 11,
 
-                    </ListItemButton>
+                                    fontWeight: 700,
 
-                ))}
+                                    letterSpacing: 2,
+
+                                    mt: 3,
+
+                                    mb: 1,
+
+                                    px: 2
+
+                                }}
+
+                            >
+
+                                {item.section}
+
+                            </Typography>
+
+                        );
+
+                    }
+
+                    const active =
+                        location.pathname === item.path;
+
+                    return (
+
+                        <ListItemButton
+
+                            key={item.text}
+
+                            onClick={() =>
+                                navigate(item.path)
+                            }
+
+                            sx={{
+
+                                borderRadius: 3,
+
+                                mb: 1,
+
+                                py: 1.4,
+
+                                px: 2,
+
+                                transition: ".25s",
+
+                                background: active
+                                    ? "linear-gradient(90deg,#00E5FF,#2563EB)"
+                                    : "transparent",
+
+                                color: active
+                                    ? "#fff"
+                                    : "#CBD5E1",
+
+                                "&:hover": {
+
+                                    background: active
+                                        ? "linear-gradient(90deg,#00E5FF,#2563EB)"
+                                        : "rgba(255,255,255,.05)",
+
+                                    transform:
+                                        "translateX(6px)"
+
+                                }
+
+                            }}
+
+                        >
+
+                            <ListItemIcon
+
+                                sx={{
+
+                                    color: active
+                                        ? "#fff"
+                                        : "#94A3B8",
+
+                                    minWidth: 40
+
+                                }}
+
+                            >
+
+                                {item.icon}
+
+                            </ListItemIcon>
+
+                            <ListItemText
+
+                                primary={item.text}
+
+                                primaryTypographyProps={{
+
+                                    fontWeight: 600,
+
+                                    fontSize: 14
+
+                                }}
+
+                            />
+
+                        </ListItemButton>
+
+                    );
+
+                })}
 
             </List>
 
+            <Box sx={{ flexGrow: 1 }} />
+
+            <Divider sx={{ borderColor: "rgba(255,255,255,.08)" }} />
+
+            <Box sx={{ p: 3 }}>
+
+                <Box
+
+                    sx={{
+
+                        display: "flex",
+
+                        alignItems: "center",
+
+                        gap: 2
+
+                    }}
+
+                >
+
+                    <Avatar
+
+                        sx={{
+
+                            bgcolor: "#00E5FF",
+
+                            color: "#000",
+
+                            fontWeight: 700
+
+                        }}
+
+                    >
+
+                        {employeeName.charAt(0)}
+
+                    </Avatar>
+
+                    <Box>
+
+                        <Typography
+                            fontWeight="700"
+                        >
+                            {employeeName}
+                        </Typography>
+
+                        <Typography
+                            variant="caption"
+                            sx={{
+                                color: "#94A3B8"
+                            }}
+                        >
+                            {role}
+                        </Typography>
+
+                    </Box>
+
+                </Box>
+
+                <Chip
+
+                    label="Trust Score : 94"
+
+                    sx={{
+
+                        mt: 2,
+
+                        width: "100%",
+
+                        bgcolor: "rgba(0,229,255,.15)",
+
+                        color: "#00E5FF",
+
+                        fontWeight: 700
+
+                    }}
+
+                />
+
+            </Box>
+
         </Drawer>
+
     );
+
 }
 
 export default Sidebar;

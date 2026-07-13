@@ -1,233 +1,147 @@
-import {
-    Grid,
-    Paper,
-    Typography,
-    Box
-} from "@mui/material";
+import { Grid } from "@mui/material";
 
-import WorkspacePremiumIcon
-    from "@mui/icons-material/WorkspacePremium";
+import PsychologyIcon from "@mui/icons-material/Psychology";
+import WorkspacePremiumIcon from "@mui/icons-material/WorkspacePremium";
+import DescriptionIcon from "@mui/icons-material/Description";
+import BadgeIcon from "@mui/icons-material/Badge";
 
-import DescriptionIcon
-    from "@mui/icons-material/Description";
-
-import PsychologyIcon
-    from "@mui/icons-material/Psychology";
-
-import BadgeIcon
-    from "@mui/icons-material/Badge";
+import MetricCard from "../ui/MetricCard";
 
 function EmployeeStats({
 
-    verifiedSkills = 0,
+    verifiedSkills,
 
-    verifiedCertifications = 0,
+    verifiedCertifications,
 
-    verifiedDocuments = 0,
+    verifiedDocuments,
 
-    employmentStatus = "ACTIVE"
+    employmentStatus
 
 }) {
-
-    const cards = [
-
-        {
-
-            title: "Verified Skills",
-
-            value: verifiedSkills,
-
-            color: "#00E5FF",
-
-            icon: <PsychologyIcon fontSize="large" />
-
-        },
-
-        {
-
-            title: "Verified Certifications",
-
-            value: verifiedCertifications,
-
-            color: "#8B5CF6",
-
-            icon: <WorkspacePremiumIcon fontSize="large" />
-
-        },
-
-        {
-
-            title: "Verified Documents",
-
-            value: verifiedDocuments,
-
-            color: "#22C55E",
-
-            icon: <DescriptionIcon fontSize="large" />
-
-        },
-
-        {
-
-            title: "Employment Status",
-
-            value: employmentStatus,
-
-            color: "#F59E0B",
-
-            icon: <BadgeIcon fontSize="large" />
-
-        }
-
-    ];
 
     return (
 
         <Grid
             container
             spacing={3}
-            sx={{ mt: 4 }}
+            sx={{ mt: 2 }}
         >
 
-            {
+            <Grid
+                item
+                xs={12}
+                sm={6}
+                lg={3}
+            >
 
-                cards.map((card) => (
+                <MetricCard
 
-                    <Grid
-                        item
-                        xs={12}
-                        sm={6}
-                        lg={3}
-                        key={card.title}
-                    >
+                    title="Verified Skills"
 
-                        <Paper
+                    value={verifiedSkills}
 
-                            elevation={0}
+                    subtitle="Approved Skills"
 
-                            sx={{
+                    trend="+8%"
 
-                                p: 3,
+                    color="#00E5FF"
 
-                                height: 150,
+                    icon={
+                        <PsychologyIcon
+                            fontSize="large"
+                        />
+                    }
 
-                                display: "flex",
+                />
 
-                                justifyContent: "space-between",
+            </Grid>
 
-                                alignItems: "center",
+            <Grid
+                item
+                xs={12}
+                sm={6}
+                lg={3}
+            >
 
-                                borderRadius: 5,
+                <MetricCard
 
-                                background:
-                                    "linear-gradient(145deg, rgba(15,23,42,0.92), rgba(30,41,59,0.85))",
+                    title="Certifications"
 
-                                backdropFilter:
-                                    "blur(20px)",
+                    value={verifiedCertifications}
 
-                                border:
-                                    "1px solid rgba(255,255,255,0.08)",
+                    subtitle="Verified Certificates"
 
-                                transition: "0.35s",
+                    trend="+5%"
 
-                                cursor: "pointer",
+                    color="#8B5CF6"
 
-                                "&:hover": {
+                    icon={
+                        <WorkspacePremiumIcon
+                            fontSize="large"
+                        />
+                    }
 
-                                    transform:
-                                        "translateY(-8px) scale(1.02)",
+                />
 
-                                    boxShadow:
-                                        `0 0 35px ${card.color}`,
+            </Grid>
 
-                                    border:
-                                        `1px solid ${card.color}`
+            <Grid
+                item
+                xs={12}
+                sm={6}
+                lg={3}
+            >
 
-                                }
+                <MetricCard
 
-                            }}
+                    title="Documents"
 
-                        >
+                    value={verifiedDocuments}
 
-                            <Box>
+                    subtitle="Verified Documents"
 
-                                <Typography
+                    trend="+12%"
 
-                                    sx={{
+                    color="#22C55E"
 
-                                        color: "#94A3B8",
+                    icon={
+                        <DescriptionIcon
+                            fontSize="large"
+                        />
+                    }
 
-                                        fontSize: 15,
+                />
 
-                                        mb: 1
+            </Grid>
 
-                                    }}
+            <Grid
+                item
+                xs={12}
+                sm={6}
+                lg={3}
+            >
 
-                                >
+                <MetricCard
 
-                                    {card.title}
+                    title="Employment"
 
-                                </Typography>
+                    value={employmentStatus}
 
-                                <Typography
+                    subtitle="Current Status"
 
-                                    variant="h3"
+                    trend="Active"
 
-                                    fontWeight="bold"
+                    color="#F59E0B"
 
-                                    sx={{
+                    icon={
+                        <BadgeIcon
+                            fontSize="large"
+                        />
+                    }
 
-                                        color: "#ffffff"
+                />
 
-                                    }}
-
-                                >
-
-                                    {card.value}
-
-                                </Typography>
-
-                            </Box>
-
-                            <Box
-
-                                sx={{
-
-                                    width: 70,
-
-                                    height: 70,
-
-                                    borderRadius: "50%",
-
-                                    display: "flex",
-
-                                    alignItems: "center",
-
-                                    justifyContent: "center",
-
-                                    color: card.color,
-
-                                    background:
-                                        `${card.color}20`,
-
-                                    boxShadow:
-                                        `0 0 20px ${card.color}`
-
-                                }}
-
-                            >
-
-                                {card.icon}
-
-                            </Box>
-
-                        </Paper>
-
-                    </Grid>
-
-                ))
-
-            }
+            </Grid>
 
         </Grid>
 

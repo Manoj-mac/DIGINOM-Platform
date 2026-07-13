@@ -1,9 +1,23 @@
-export * from "./colors";
+import { createTheme } from "@mui/material/styles";
 
-export * from "./gradients";
+import palette from "./palette";
+import typography from "./typography";
+import components from "./components";
+import shape from "./shape";
+import customShadows from "./shadows";
 
-export * from "./shadows";
+const theme = createTheme({
 
-export * from "./typography";
+    palette,
 
-export * from "./spacing";
+    typography,
+
+    components,
+
+    shape
+
+});
+
+theme.customShadows = customShadows;
+
+export default theme;

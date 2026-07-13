@@ -1,7 +1,3 @@
-import {
-    Box,
-    Grid
-} from "@mui/material";
 
 import {
     useEffect,
@@ -10,142 +6,132 @@ import {
 
 import api from "../api/api";
 
-import Sidebar
-    from "../components/Sidebar";
+import HeroBanner from "../components/ui/HeroBanner";
 
-import HeroBanner
-    from "../components/ui/HeroBanner";
+import DigitalEmployeeCard from "../components/Employee/DigitalEmployeeCard";
 
-import DigitalEmployeeCard
-    from "../components/Employee/DigitalEmployeeCard";
+import TrustScoreRing from "../components/Employee/TrustScoreRing";
 
-import TrustScoreRing
-    from "../components/Employee/TrustScoreRing";
+import EmployeeStats from "../components/Employee/EmployeeStats";
 
-import EmployeeStats
-    from "../components/Employee/EmployeeStats";
+import ActivityTimeline from "../components/Employee/ActivityTimeline";
 
-import ActivityTimeline
-    from "../components/Employee/ActivityTimeline";
+import NotificationPanel from "../components/Employee/NotificationPanel";
 
-
+import DashboardLayout from "../dashboard/DashboardLayout";
 function EmployeeDashboard() {
 
-    const [employee, setEmployee] =
-        useState(null);
+    const [employee, setEmployee] = useState(null);
 
-    const [summary, setSummary] =
-        useState(null);
+    const [summary, setSummary] = useState(null);
 
-    const [timeline, setTimeline] =
-        useState([]);
+    const [timeline, setTimeline] = useState([]);
+
+    const [notifications, setNotifications] = useState([]);
 
     const employeeId =
         localStorage.getItem(
             "employee_id"
         );
 
-
     useEffect(() => {
 
-        const fetchDashboardData =
-            async () => {
+        const fetchDashboardData = async () => {
 
-                try {
+            try {
 
-                    const token =
-                        localStorage.getItem(
-                            "token"
-                        );
-
-
-                    // EMPLOYEE DETAILS
-
-                    const employeeResponse =
-                        await api.get(
-
-                            `/employees/${employeeId}`,
-
-                            {
-
-                                headers: {
-
-                                    Authorization:
-                                        `Bearer ${token}`
-
-                                }
-
-                            }
-
-                        );
-
-                    setEmployee(
-                        employeeResponse.data
+                const token =
+                    localStorage.getItem(
+                        "token"
                     );
 
+                const headers = {
 
-                    // DASHBOARD SUMMARY
+                    Authorization:
+                        `Bearer ${token}`
 
-                    const summaryResponse =
-                        await api.get(
+                };
 
-                            `/employee-dashboard-summary/${employeeId}`,
+                // EMPLOYEE
 
-                            {
+                const employeeResponse =
+                    await api.get(
 
-                                headers: {
+                        `/employees/${employeeId}`,
 
-                                    Authorization:
-                                        `Bearer ${token}`
+                        {
+                            headers
+                        }
 
-                                }
-
-                            }
-
-                        );
-
-                    setSummary(
-                        summaryResponse.data
                     );
 
+                setEmployee(
+                    employeeResponse.data
+                );
 
-                    // EMPLOYEE TIMELINE
+                // DASHBOARD SUMMARY
 
-                    const timelineResponse =
-                        await api.get(
+                const summaryResponse =
+                    await api.get(
 
-                            `/employees/${employeeId}/timeline`,
+                        `/employee-dashboard-summary/${employeeId}`,
 
-                            {
+                        {
+                            headers
+                        }
 
-                                headers: {
-
-                                    Authorization:
-                                        `Bearer ${token}`
-
-                                }
-
-                            }
-
-                        );
-
-                    setTimeline(
-                        timelineResponse.data
                     );
 
-                }
+                setSummary(
+                    summaryResponse.data
+                );
 
-                catch (error) {
+                // ACTIVITY TIMELINE
 
-                    console.error(
-                        "Employee Dashboard Error",
-                        error
+                const timelineResponse =
+                    await api.get(
+
+                        `/employees/${employeeId}/timeline`,
+
+                        {
+                            headers
+                        }
+
                     );
 
-                }
+                setTimeline(
+                    timelineResponse.data
+                );
 
-            };
+                // NOTIFICATIONS
 
+                const notificationResponse =
+                    await api.get(
+
+                        `/notifications/${employeeResponse.data.email}`,
+
+                        {
+                            headers
+                        }
+
+                    );
+
+                setNotifications(
+                    notificationResponse.data
+                );
+
+            }
+
+            catch (error) {
+
+                console.error(
+                    "Employee Dashboard Error:",
+                    error
+                );
+
+            }
+
+        };
 
         if (employeeId) {
 
@@ -153,167 +139,144 @@ function EmployeeDashboard() {
 
         }
 
-    }, [employeeId]);
+    },
 
+        [employeeId]);
 
     return (
 
-        <Box
+        <DashboardLayout>
 
-            sx={{
+            <HeroBanner
 
-                display: "flex",
+                name={
+                    employee
+                        ? `${employee.first_name} ${employee.last_name}`
+                        : "Employee"
+                }
 
-                background: "#020617",
+                role="Digital Workforce Identity Platform"
 
-                minHeight: "100vh"
+            />
 
-            }}
+            {employee && (
 
-        >
-
-            <Sidebar />
-
-            <Box
-
-                sx={{
-
-                    flexGrow: 1,
-
-                    p: 4,
-
-                    overflow: "hidden"
-
-                }}
-
-            >
-
-                <HeroBanner
-
-                    name={
-
-                        employee
-
-                            ? `${employee.first_name} ${employee.last_name}`
-
-                            : "Employee"
-
-                    }
-
-                    role="Digital Workforce Identity Platform"
-
-                />
-
-
-                {employee && (
+                <Grid
+                    container
+                    spacing={4}
+                    sx={{ mt: 2 }}
+                >
 
                     <Grid
-
-                        container
-
-                        spacing={4}
-
-                        sx={{ mt: 2 }}
-
+                        item
+                        xs={12}
+                        lg={7}
                     >
 
-                        <Grid
+                        <DigitalEmployeeCard
 
-                            item
+                            employee={{
 
-                            xs={12}
+                                ...employee,
 
-                            lg={7}
-
-                        >
-
-                            <DigitalEmployeeCard
-
-                                employee={{
-
-                                    ...employee,
-
-                                    trust_score:
-                                        summary?.trust_score ?? 0
-
-                                }}
-
-                            />
-
-                        </Grid>
-
-
-                        <Grid
-
-                            item
-
-                            xs={12}
-
-                            lg={5}
-
-                        >
-
-                            <TrustScoreRing
-
-                                score={
+                                trust_score:
                                     summary?.trust_score ?? 0
-                                }
 
-                                verifiedSkills={
-                                    summary?.verified_skills ?? 0
-                                }
+                            }}
 
-                                verifiedCertifications={
-                                    summary?.verified_certifications ?? 0
-                                }
-
-                                verifiedDocuments={
-                                    summary?.verified_documents ?? 0
-                                }
-
-                            />
-
-                        </Grid>
+                        />
 
                     </Grid>
 
-                )}
+                    <Grid
+                        item
+                        xs={12}
+                        lg={5}
+                    >
 
+                        <TrustScoreRing
 
-                {summary && (
+                            score={
+                                summary?.trust_score ?? 0
+                            }
 
-                    <EmployeeStats
+                            verifiedSkills={
+                                summary?.verified_skills ?? 0
+                            }
 
-                        verifiedSkills={
-                            summary.verified_skills
-                        }
+                            verifiedCertifications={
+                                summary?.verified_certifications ?? 0
+                            }
 
-                        verifiedCertifications={
-                            summary.verified_certifications
-                        }
+                            verifiedDocuments={
+                                summary?.verified_documents ?? 0
+                            }
 
-                        verifiedDocuments={
-                            summary.verified_documents
-                        }
+                        />
 
-                        employmentStatus={
-                            summary.employment_status
-                        }
+                    </Grid>
 
-                    />
+                </Grid>
 
-                )}
+            )}
 
+            {summary && (
 
-                <ActivityTimeline
+                <EmployeeStats
 
-                    timeline={timeline}
+                    verifiedSkills={
+                        summary.verified_skills
+                    }
+
+                    verifiedCertifications={
+                        summary.verified_certifications
+                    }
+
+                    verifiedDocuments={
+                        summary.verified_documents
+                    }
+
+                    employmentStatus={
+                        summary.employment_status
+                    }
 
                 />
 
-            </Box>
+            )}
 
-        </Box>
+            <Grid
+                container
+                spacing={4}
+                sx={{ mt: 2 }}
+            >
+
+                <Grid
+                    item
+                    xs={12}
+                    lg={8}
+                >
+
+                    <ActivityTimeline
+                        timeline={timeline}
+                    />
+
+                </Grid>
+
+                <Grid
+                    item
+                    xs={12}
+                    lg={4}
+                >
+
+                    <NotificationPanel
+                        notifications={notifications}
+                    />
+
+                </Grid>
+
+            </Grid>
+
+        </DashboardLayout>
 
     );
 

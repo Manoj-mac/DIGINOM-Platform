@@ -1,15 +1,17 @@
-export const SHADOWS = {
+const customShadows = {
 
-    glass:
+    glow:
 
-        "0 25px 70px rgba(0,0,0,.45)",
+        "0 0 35px rgba(0,229,255,.25)",
 
-    glowBlue:
+    card:
 
-        "0 0 45px rgba(0,229,255,.28)",
+        "0 20px 60px rgba(0,0,0,.45)",
 
-    glowPurple:
+    hover:
 
-        "0 0 45px rgba(139,92,246,.28)"
+        "0 25px 80px rgba(0,229,255,.18)"
 
 };
+
+export default customShadows;

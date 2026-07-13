@@ -1,332 +1,262 @@
 import {
-    Box,
     Avatar,
-    Typography,
-    Chip,
-    Divider
+    Box,
+    Divider,
+    Grid,
+    Stack,
+    Typography
 } from "@mui/material";
 
 import BadgeIcon from "@mui/icons-material/Badge";
-import VerifiedIcon from "@mui/icons-material/Verified";
-import PersonIcon from "@mui/icons-material/Person";
+import BusinessIcon from "@mui/icons-material/Business";
+import WorkIcon from "@mui/icons-material/Work";
+import ShieldRoundedIcon from "@mui/icons-material/ShieldRounded";
+
+import GlassCard from "../ui/GlassCard";
+import IdentityBadge from "./IdentityBadge";
+import ProfileCompletion from "./ProfileCompletion";
+import EmployeeQRCode from "./EmployeeQRCode";
 
 function DigitalEmployeeCard({
 
-    employee = {
-
-        first_name: "Manoj",
-        last_name: "Kumar",
-
-        diginom_id: "DIG-000001",
-
-        city: "Hyderabad",
-
-        state: "Telangana",
-
-        country: "India",
-
-        status: "ACTIVE",
-
-        trust_score: 92,
-
-        photo_url: null
-    }
+    employee
 
 }) {
 
-    const trustColor =
-
-        employee.trust_score >= 90
-            ? "#22c55e"
-            : employee.trust_score >= 70
-                ? "#00E5FF"
-                : employee.trust_score >= 50
-                    ? "#f59e0b"
-                    : "#ef4444";
-
     return (
 
-        <Box
+        <GlassCard
 
             sx={{
 
-                width: 460,
+                p: 4,
 
-                minHeight: 320,
+                height: "100%"
 
-                borderRadius: 5,
-
-                p: 3,
-
-                position: "relative",
-
-                overflow: "hidden",
-
-                background:
-                    "linear-gradient(135deg,#020617 0%,#0f172a 50%,#1e1b4b 100%)",
-
-                border:
-                    "1px solid rgba(255,255,255,0.08)",
-
-                boxShadow:
-                    "0 20px 60px rgba(0,0,0,0.45)",
-
-                color:
-                    "#ffffff"
             }}
 
         >
 
-            <Box
-                sx={{
-                    position: "absolute",
-                    top: -100,
-                    right: -100,
-                    width: 250,
-                    height: 250,
-                    borderRadius: "50%",
-                    background: "rgba(0,229,255,0.15)",
-                    filter: "blur(80px)"
-                }}
-            />
+            <Stack
 
-            <Box
-                sx={{
-                    position: "absolute",
-                    bottom: -80,
-                    left: -80,
-                    width: 220,
-                    height: 220,
-                    borderRadius: "50%",
-                    background: "rgba(139,92,246,0.15)",
-                    filter: "blur(80px)"
-                }}
-            />
+                spacing={3}
 
-            <Typography
-                variant="h5"
-                fontWeight="bold"
+                alignItems="center"
+
             >
-                DIGINOM
-            </Typography>
 
-            <Typography
-                variant="caption"
-                sx={{
-                    color: "rgba(255,255,255,0.7)"
-                }}
-            >
-                Talent Intelligence Network
-            </Typography>
+                <Avatar
+
+                    src={employee.profile_image}
+
+                    sx={{
+
+                        width: 110,
+
+                        height: 110,
+
+                        fontSize: 40,
+
+                        bgcolor: "#00E5FF",
+
+                        color: "#020617",
+
+                        fontWeight: 700,
+
+                        boxShadow:
+                            "0 0 35px rgba(0,229,255,.35)"
+
+                    }}
+
+                >
+
+                    {employee.first_name?.charAt(0)}
+
+                </Avatar>
+
+                <Box textAlign="center">
+
+                    <Typography
+
+                        variant="h5"
+
+                        fontWeight={700}
+
+                        color="#fff"
+
+                    >
+
+                        {employee.first_name} {employee.last_name}
+
+                    </Typography>
+
+                    <Typography
+
+                        color="#94A3B8"
+
+                    >
+
+                        {employee.designation || "Employee"}
+
+                    </Typography>
+
+                </Box>
+
+                <IdentityBadge verified />
+
+            </Stack>
 
             <Divider
+
                 sx={{
-                    my: 2,
-                    borderColor: "rgba(255,255,255,0.1)"
+
+                    my: 4,
+
+                    borderColor:
+                        "rgba(255,255,255,.08)"
+
                 }}
+
             />
 
-            <Box
-                sx={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center"
-                }}
-            >
+            <Grid
 
-                <Box>
+                container
 
-                    <Avatar
-
-                        src={employee.photo_url}
-
-                        sx={{
-
-                            width: 95,
-
-                            height: 95,
-
-                            border: "3px solid #00E5FF",
-
-                            mb: 2,
-
-                            bgcolor: "#1e293b"
-
-                        }}
-
-                    >
-
-                        <PersonIcon
-                            sx={{
-                                fontSize: 50
-                            }}
-                        />
-
-                    </Avatar>
-
-                    <Typography
-                        variant="h6"
-                        fontWeight="bold"
-                    >
-                        {employee.first_name} {employee.last_name}
-                    </Typography>
-
-                    <Typography
-                        sx={{
-                            color: "#94a3b8"
-                        }}
-                    >
-                        {employee.diginom_id}
-                    </Typography>
-
-                </Box>
-
-                <Box
-                    sx={{
-                        textAlign: "center"
-                    }}
-                >
-
-                    <Typography
-                        variant="body2"
-                        sx={{
-                            color: "#94a3b8"
-                        }}
-                    >
-                        TRUST SCORE
-                    </Typography>
-
-                    <Box
-
-                        sx={{
-
-                            width: 90,
-
-                            height: 90,
-
-                            borderRadius: "50%",
-
-                            border: `6px solid ${trustColor}`,
-
-                            display: "flex",
-
-                            alignItems: "center",
-
-                            justifyContent: "center",
-
-                            mt: 1,
-
-                            boxShadow: `0 0 25px ${trustColor}`
-
-                        }}
-
-                    >
-
-                        <Typography
-
-                            variant="h5"
-
-                            fontWeight="bold"
-
-                            sx={{
-                                color: trustColor
-                            }}
-
-                        >
-
-                            {employee.trust_score}
-
-                        </Typography>
-
-                    </Box>
-
-                </Box>
-
-            </Box>
-
-            <Box
-                sx={{
-                    mt: 3
-                }}
-            >
-
-                <Typography
-                    sx={{
-                        color: "#cbd5e1"
-                    }}
-                >
-                    {employee.city}, {employee.state}, {employee.country}
-                </Typography>
-
-            </Box>
-
-            <Box
-                sx={{
-                    mt: 2,
-                    display: "flex",
-                    gap: 1,
-                    flexWrap: "wrap"
-                }}
-            >
-
-                <Chip
-                    icon={<BadgeIcon />}
-                    label={employee.status}
-                    color="success"
-                />
-
-                <Chip
-                    icon={<VerifiedIcon />}
-                    label="Identity Verified"
-                    sx={{
-                        bgcolor: "#22c55e",
-                        color: "#fff"
-                    }}
-                />
-
-            </Box>
-
-            <Box
-
-                sx={{
-
-                    mt: 3,
-
-                    p: 2,
-
-                    borderRadius: 3,
-
-                    background: "rgba(255,255,255,0.05)",
-
-                    border: "1px dashed rgba(255,255,255,0.15)",
-
-                    textAlign: "center"
-
-                }}
+                spacing={3}
 
             >
 
-                <Typography
-                    variant="body2"
-                    sx={{
-                        color: "#94a3b8"
-                    }}
-                >
-                    QR Verification
-                </Typography>
+                <Grid item xs={6}>
 
-                <Typography
-                    variant="caption"
-                    sx={{
-                        color: "#64748b"
-                    }}
-                >
-                    QR Generator Coming Next
-                </Typography>
+                    <Stack direction="row" spacing={1}>
 
-            </Box>
+                        <BadgeIcon color="primary" />
 
-        </Box>
+                        <Box>
+
+                            <Typography color="#64748B">
+
+                                Employee ID
+
+                            </Typography>
+
+                            <Typography color="#fff">
+
+                                {employee.diginom_id}
+
+                            </Typography>
+
+                        </Box>
+
+                    </Stack>
+
+                </Grid>
+
+                <Grid item xs={6}>
+
+                    <Stack direction="row" spacing={1}>
+
+                        <BusinessIcon color="primary" />
+
+                        <Box>
+
+                            <Typography color="#64748B">
+
+                                Company
+
+                            </Typography>
+
+                            <Typography color="#fff">
+
+                                {employee.company_name || "DIGINOM"}
+
+                            </Typography>
+
+                        </Box>
+
+                    </Stack>
+
+                </Grid>
+
+                <Grid item xs={6}>
+
+                    <Stack direction="row" spacing={1}>
+
+                        <WorkIcon color="primary" />
+
+                        <Box>
+
+                            <Typography color="#64748B">
+
+                                Department
+
+                            </Typography>
+
+                            <Typography color="#fff">
+
+                                {employee.department || "Engineering"}
+
+                            </Typography>
+
+                        </Box>
+
+                    </Stack>
+
+                </Grid>
+
+                <Grid item xs={6}>
+
+                    <Stack direction="row" spacing={1}>
+
+                        <ShieldRoundedIcon color="primary" />
+
+                        <Box>
+
+                            <Typography color="#64748B">
+
+                                Trust Score
+
+                            </Typography>
+
+                            <Typography
+
+                                color="#00E5FF"
+
+                                fontWeight={700}
+
+                            >
+
+                                {employee.trust_score}
+
+                            </Typography>
+
+                        </Box>
+
+                    </Stack>
+
+                </Grid>
+
+            </Grid>
+
+            <Divider
+
+                sx={{
+
+                    my: 4,
+
+                    borderColor:
+                        "rgba(255,255,255,.08)"
+
+                }}
+
+            />
+
+            <ProfileCompletion value={92} />
+
+            <EmployeeQRCode />
+
+        </GlassCard>
 
     );
 

@@ -1,33 +1,24 @@
 import {
-
-    Paper,
-
-    Typography,
-
-    Box
-
+    Box,
+    Typography
 } from "@mui/material";
 
 import {
-
     Timeline,
-
     TimelineItem,
-
     TimelineSeparator,
-
     TimelineConnector,
-
     TimelineContent,
-
     TimelineDot
-
 } from "@mui/lab";
 
 import VerifiedIcon from "@mui/icons-material/Verified";
 import DescriptionIcon from "@mui/icons-material/Description";
 import PsychologyIcon from "@mui/icons-material/Psychology";
 import PersonIcon from "@mui/icons-material/Person";
+
+import GlassCard from "../ui/GlassCard";
+import SectionHeader from "../ui/SectionHeader";
 
 function ActivityTimeline({
 
@@ -40,166 +31,231 @@ function ActivityTimeline({
         switch (type) {
 
             case "SKILL_ADDED":
-
                 return <PsychologyIcon />;
 
             case "CERTIFICATION_ADDED":
-
                 return <VerifiedIcon />;
 
             case "DOCUMENT_UPLOADED":
-
                 return <DescriptionIcon />;
 
             default:
-
                 return <PersonIcon />;
-
         }
 
     };
 
     return (
 
-        <Paper
-
-            elevation={0}
+        <GlassCard
 
             sx={{
 
-                mt: 5,
+                mt: 4,
 
-                p: 3,
-
-                borderRadius: 5,
-
-                background:
-                    "rgba(255,255,255,0.05)",
-
-                backdropFilter:
-                    "blur(20px)",
-
-                border:
-                    "1px solid rgba(255,255,255,0.08)"
+                p: 3
 
             }}
 
         >
 
-            <Typography
+            <SectionHeader
 
-                variant="h5"
+                title="Activity Timeline"
 
-                fontWeight="bold"
+                subtitle="Recent verified employee activities"
 
-                sx={{
+            />
 
-                    color: "#fff",
+            {
 
-                    mb: 3
+                timeline.length === 0 ? (
 
-                }}
+                    <Box
 
-            >
+                        sx={{
 
-                Activity Timeline
+                            py: 6,
 
-            </Typography>
+                            textAlign: "center"
 
-            <Timeline position="right">
+                        }}
 
-                {
+                    >
 
-                    timeline.map((item) => (
+                        <Typography
 
-                        <TimelineItem
-                            key={item.timeline_id}
+                            variant="h6"
+
+                            sx={{
+
+                                color: "#94A3B8"
+
+                            }}
+
                         >
 
-                            <TimelineSeparator>
+                            No Activity Found
 
-                                <TimelineDot
-                                    color="primary"
-                                >
+                        </Typography>
 
-                                    {
+                        <Typography
 
-                                        getIcon(
-                                            item.event_type
-                                        )
+                            sx={{
 
-                                    }
+                                color: "#64748B",
 
-                                </TimelineDot>
+                                mt: 1
 
-                                <TimelineConnector />
+                            }}
 
-                            </TimelineSeparator>
+                        >
 
-                            <TimelineContent>
+                            Employee activities will appear here.
 
-                                <Typography
+                        </Typography>
 
-                                    fontWeight="bold"
+                    </Box>
 
-                                    color="#fff"
+                ) : (
 
-                                >
+                    <Timeline position="right">
 
-                                    {
+                        {
 
-                                        item.event_type.replaceAll(
-                                            "_",
-                                            " "
-                                        )
+                            timeline.map((item) => (
 
-                                    }
+                                <TimelineItem
 
-                                </Typography>
-
-                                <Typography
-                                    color="#94A3B8"
-                                >
-
-                                    {
-
-                                        item.event_description
-
-                                    }
-
-                                </Typography>
-
-                                <Typography
-
-                                    variant="caption"
-
-                                    color="#64748B"
+                                    key={item.timeline_id}
 
                                 >
 
-                                    {
+                                    <TimelineSeparator>
 
-                                        new Date(
+                                        <TimelineDot
 
-                                            item.created_at
+                                            sx={{
 
-                                        ).toLocaleString()
+                                                bgcolor: "#00E5FF",
 
-                                    }
+                                                boxShadow:
+                                                    "0 0 15px rgba(0,229,255,.45)"
 
-                                </Typography>
+                                            }}
 
-                            </TimelineContent>
+                                        >
 
-                        </TimelineItem>
+                                            {
 
-                    ))
+                                                getIcon(
 
-                }
+                                                    item.event_type
 
-            </Timeline>
+                                                )
 
-        </Paper>
+                                            }
+
+                                        </TimelineDot>
+
+                                        <TimelineConnector
+
+                                            sx={{
+
+                                                bgcolor:
+                                                    "rgba(255,255,255,.12)"
+
+                                            }}
+
+                                        />
+
+                                    </TimelineSeparator>
+
+                                    <TimelineContent>
+
+                                        <Typography
+
+                                            sx={{
+
+                                                color: "#FFFFFF",
+
+                                                fontWeight: 700,
+
+                                                mb: .5
+
+                                            }}
+
+                                        >
+
+                                            {
+
+                                                item.event_type
+
+                                                    .replaceAll("_", " ")
+
+                                            }
+
+                                        </Typography>
+
+                                        <Typography
+
+                                            sx={{
+
+                                                color: "#CBD5E1",
+
+                                                mb: .5
+
+                                            }}
+
+                                        >
+
+                                            {
+
+                                                item.event_description
+
+                                            }
+
+                                        </Typography>
+
+                                        <Typography
+
+                                            variant="caption"
+
+                                            sx={{
+
+                                                color: "#64748B"
+
+                                            }}
+
+                                        >
+
+                                            {
+
+                                                new Date(
+
+                                                    item.created_at
+
+                                                ).toLocaleString()
+
+                                            }
+
+                                        </Typography>
+
+                                    </TimelineContent>
+
+                                </TimelineItem>
+
+                            ))
+
+                        }
+
+                    </Timeline>
+
+                )
+
+            }
+
+        </GlassCard>
 
     );
 

@@ -9,6 +9,7 @@ from app.security import (
     verify_password
 )
 from app.crud import get_employee_by_email
+
 router = APIRouter()
 
 
@@ -25,20 +26,33 @@ def login(
     form_data: OAuth2PasswordRequestForm = Depends(),
     db: Session = Depends(get_db)
 ):
+
+
     db_user = get_user_by_email(
         db,
         form_data.username
     )
-    employee = get_employee_by_email(
-    db,
-    db_user.email
-)
 
     if not db_user:
         raise HTTPException(
             status_code=401,
             detail="Invalid email or password"
         )
+
+    print("DB USER EMAIL:", db_user.email)
+
+    employee = get_employee_by_email(
+        db,
+        db_user.email
+    )
+
+    print("EMPLOYEE:", employee)
+
+    if employee:
+        print("EMPLOYEE EMAIL:", employee.email)
+        print("EMPLOYEE ID:", employee.employee_id)
+    else:
+        print("Employee not found!")
 
     if not verify_password(
         form_data.password,
@@ -57,17 +71,11 @@ def login(
     )
 
     return {
-    "access_token": token,
-    "token_type": "bearer",
-    "role": db_user.role,
-    "email": db_user.email,
-    "username": db_user.username,
-
-    "employee_id":
-        str(employee.employee_id)
-        if employee else None,
-
-    "diginom_id":
-        employee.diginom_id
-        if employee else None
-}
+        "access_token": token,
+        "token_type": "bearer",
+        "role": db_user.role,
+        "email": db_user.email,
+        "username": db_user.username,
+        "employee_id": str(employee.employee_id) if employee else None,
+        "diginom_id": employee.diginom_id if employee else None
+    }

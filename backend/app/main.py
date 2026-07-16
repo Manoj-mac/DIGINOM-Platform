@@ -115,6 +115,7 @@ from app.verification_crud import (
     get_verification_requests,
     get_verification_request_by_id
 )
+from app.identity_verification_crud import verify_employee
 
 from app.certifications import Certification
 from datetime import datetime
@@ -227,6 +228,8 @@ from app.candidate_recommendation_crud import (
 )
 
 from app.interview_pipeline import InterviewPipeline
+from app.interview_pipeline_crud import get_pipeline_stats
+
 from datetime import datetime
 
 from app.employee_timeline_crud import (
@@ -265,6 +268,19 @@ from app.trust_score_crud import (
 from app.roles import (
     hr_required
 )
+from app.dashboard_crud import (
+    get_employee_dashboard_summary
+)
+from app.profile_completion_crud import (
+    get_profile_completion
+)
+
+from fastapi import HTTPException
+from app.identity_crud import get_employee_identity
+
+
+
+
 
 Base.metadata.create_all(
     bind=engine
@@ -2096,66 +2112,46 @@ def edit_company(
 
     return updated_company
 
-@app.get(
-    "/pipeline/dashboard"
-)
-def pipeline_dashboard(
-
-    db: Session = Depends(
-        get_db
-    ),
-
-    token: dict = Depends(
-        verify_token
-    )
-):
-
-    return get_pipeline_stats(
-        db
-    )
-
-@app.get(
-    "/employees/{employee_id}/timeline"
-)
+@app.get("/employees/{employee_id}/timeline")
 def employee_timeline(
 
     employee_id: str,
 
-    db: Session = Depends(
-        get_db
-    ),
+    db: Session = Depends(get_db),
 
-    token: dict = Depends(
-        verify_token
-    )
+    token: dict = Depends(verify_token)
+
 ):
 
-    timeline = get_employee_timeline(
+    events = get_employee_timeline(
 
         db,
 
         employee_id
+
     )
 
-    result = []
+    return [
 
-    for item in timeline:
+        {
 
-        result.append({
+            "timeline_id":
+                str(event.timeline_id),
 
             "event_type":
-                item.event_type,
+                event.event_type,
 
             "event_description":
-                item.event_description,
+                event.event_description,
 
             "created_at":
-                str(
-                    item.created_at
-                )
-        })
+                event.created_at
 
-    return result
+        }
+
+        for event in events
+
+    ]
 
 @app.get(
     "/notifications/{user_email}"
@@ -2266,7 +2262,134 @@ def hr_dashboard(
         "verified_employees":
             verified_employees
     }
+@app.get(
+    "/employee-dashboard-summary/{employee_id}"
+)
+def employee_dashboard_summary(
 
+    employee_id: str,
+
+    db: Session = Depends(get_db),
+
+    token: dict = Depends(verify_token)
+
+):
+
+    summary = get_employee_dashboard_summary(
+
+        db,
+
+        employee_id
+
+    )
+
+    if not summary:
+
+        return {
+
+            "message":
+                "Employee not found"
+
+        }
+
+    return summary
+
+@app.get(
+    "/profile-completion/{employee_id}"
+)
+def profile_completion(
+
+    employee_id: str,
+
+    db: Session = Depends(get_db),
+
+    token: dict = Depends(
+        verify_token
+    )
+
+):
+
+    return get_profile_completion(
+        db,
+        employee_id
+    )
+
+
+@app.get("/pipeline/dashboard")
+def pipeline_dashboard(
+
+    db: Session = Depends(get_db),
+
+    token: dict = Depends(verify_token)
+
+):
+
+    return get_pipeline_stats(db)
+    
+
+
+@app.get("/identity/{employee_id}")
+def get_identity(
+
+    employee_id: str,
+
+    db: Session = Depends(get_db),
+
+    token: dict = Depends(verify_token)
+
+):
+
+    identity = get_employee_identity(
+
+        db,
+
+        employee_id
+
+    )
+
+    if identity is None:
+
+        raise HTTPException(
+
+            status_code=404,
+
+            detail="Employee not found"
+
+        )
+
+    return identity
+
+@app.get("/verify/{diginom_id}")
+
+def verify_identity(
+
+    diginom_id: str,
+
+    db: Session = Depends(get_db)
+
+):
+
+    employee = verify_employee(
+
+        db,
+
+        diginom_id
+
+    )
+
+    if employee is None:
+
+        raise HTTPException(
+
+            status_code=404,
+
+            detail="Invalid DIGINOM ID"
+
+        )
+
+    return employee
+
+    return get_pipeline_stats(db)
 # UPDATE EMPLOYEE (ADMIN ONLY)
 @app.put("/employees/{employee_id}")
 def edit_employee(

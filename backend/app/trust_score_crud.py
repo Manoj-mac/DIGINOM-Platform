@@ -4,6 +4,7 @@ from app.certifications import Certification
 from app.documents import Document
 
 
+
 def calculate_trust_score(
     db,
     employee_id

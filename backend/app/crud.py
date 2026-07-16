@@ -111,9 +111,30 @@ def get_employee_by_email(
     db: Session,
     email: str
 ):
-    return db.query(Employee).filter(
-        Employee.email == email
+
+    print("=" * 60)
+    print("Searching Email :", repr(email))
+
+    employees = db.query(Employee).all()
+
+    print("Employees in Database:")
+
+    for emp in employees:
+        print(
+            "DB Email:",
+            repr(emp.email),
+            "Employee ID:",
+            emp.employee_id
+        )
+
+    employee = db.query(Employee).filter(
+        func.lower(Employee.email) == email.lower()
     ).first()
+
+    print("Matched Employee:", employee)
+    print("=" * 60)
+
+    return employee
 
 
 def update_employee(db: Session, employee_id: str, employee_data):

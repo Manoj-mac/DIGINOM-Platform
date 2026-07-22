@@ -2,61 +2,46 @@ from sqlalchemy import (
     Column,
     String,
     Boolean,
-    DateTime,
-    ForeignKey
+    TIMESTAMP,
+    ForeignKey,
+    text
 )
 
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.sql import func
-import uuid
 
 from app.database import Base
 
 
 class Device(Base):
 
-    __tablename__ = "devices"
+    __tablename__ = "Device"
 
-    id = Column(
+    device_id = Column(
         UUID(as_uuid=True),
         primary_key=True,
-        default=uuid.uuid4
+        server_default=text("gen_random_uuid()")
     )
 
     employee_id = Column(
         UUID(as_uuid=True),
-        ForeignKey("employees.id", ondelete="CASCADE"),
-        nullable=False
+        ForeignKey("Employee.employee_id")
     )
 
     device_uuid = Column(
-        String,
-        nullable=False,
+        String(255),
         unique=True
     )
 
-    device_name = Column(
-        String,
-        nullable=False
-    )
+    device_name = Column(String(255))
 
-    operating_system = Column(
-        String,
-        nullable=False
-    )
+    operating_system = Column(String(100))
 
-    browser = Column(
-        String,
-        nullable=False
-    )
+    browser = Column(String(100))
 
-    ip_address = Column(
-        String,
-        nullable=True
-    )
+    ip_address = Column(String(100))
 
     status = Column(
-        String,
+        String(30),
         default="ACTIVE"
     )
 
@@ -65,13 +50,6 @@ class Device(Base):
         default=False
     )
 
-    last_login = Column(
-        DateTime(timezone=True),
-        server_default=func.now(),
-        onupdate=func.now()
-    )
+    created_at = Column(TIMESTAMP)
 
-    created_at = Column(
-        DateTime(timezone=True),
-        server_default=func.now()
-    )
+    last_login = Column(TIMESTAMP)

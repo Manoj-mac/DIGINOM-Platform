@@ -1,4 +1,5 @@
 from pydantic import BaseModel
+from uuid import UUID
 
 
 class EmployeeCreate(BaseModel):
@@ -131,4 +132,47 @@ class JobCreate(BaseModel):
 class JobUpdate(BaseModel):
     status: str
     
-    
+class DeviceCreate(BaseModel):
+
+    device_uuid: str
+    device_name: str
+    operating_system: str
+    browser: str
+    ip_address: str
+
+
+class DeviceUpdate(BaseModel):
+
+    status: str
+
+
+class DevicePrimary(BaseModel):
+
+    device_id: str
+
+
+
+
+class DeviceResponse(BaseModel):
+
+    device_id: UUID
+
+    employee_id: UUID
+
+    device_uuid: str
+
+    device_name: str
+
+    operating_system: str
+
+    browser: str
+
+    ip_address: str
+
+    status: str
+
+    is_primary: bool
+
+    class Config:
+
+        from_attributes = True

@@ -65,11 +65,13 @@ def login(
         )
 
     token = create_access_token(
-        {
-            "sub": db_user.email,
-            "role": db_user.role
-        }
-    )
+    {
+        "sub": db_user.email,
+        "role": db_user.role,
+        "employee_id": str(employee.employee_id) if employee else None,
+        "diginom_id": employee.diginom_id if employee else None
+    }
+)
 
     return {
         "access_token": token,

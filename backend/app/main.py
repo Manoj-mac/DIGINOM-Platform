@@ -293,6 +293,11 @@ Base.metadata.create_all(
 
 app.include_router(auth_router)
 app.include_router(user_router)
+app.include_router(
+    device_router,
+    prefix="/devices",
+    tags=["Devices"]
+)
 
 
 def get_db():

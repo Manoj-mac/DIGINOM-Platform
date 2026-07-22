@@ -1,48 +1,53 @@
-import {
-    Box,
-    Typography
-} from "@mui/material";
+import { Box, Typography } from "@mui/material";
+import AppCard from "./AppCard";
 
-import TrendingUpIcon from "@mui/icons-material/TrendingUp";
-
-import GlassCard from "./GlassCard";
-
-import FadeIn from "./FadeIn";
-
-function MetricCard({
-
+export default function MetricCard({
     title,
-
     value,
-
     icon,
-
-    color = "#00E5FF",
-
-    subtitle = "",
-
-    trend = "+0%"
-
+    color = "#00E5FF"
 }) {
     return (
-
-        <FadeIn>
-
-            <GlassCard
+        <AppCard>
+            <Box
                 sx={{
-                    p: 3,
-                    height: "100%"
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center"
                 }}
             >
+                <Box>
+                    <Typography
+                        variant="body2"
+                        color="text.secondary"
+                    >
+                        {title}
+                    </Typography>
 
-                ....
+                    <Typography
+                        variant="h4"
+                        fontWeight={700}
+                        mt={1}
+                    >
+                        {value}
+                    </Typography>
+                </Box>
 
-            </GlassCard>
-
-        </FadeIn>
-
-    )
-
+                <Box
+                    sx={{
+                        width: 56,
+                        height: 56,
+                        borderRadius: 3,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        bgcolor: `${color}22`,
+                        color
+                    }}
+                >
+                    {icon}
+                </Box>
+            </Box>
+        </AppCard>
+    );
 }
-
-export default MetricCard;

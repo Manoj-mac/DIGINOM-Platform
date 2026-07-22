@@ -22,8 +22,9 @@ def verify_employee(db, diginom_id):
         "diginom_id":
             employee.diginom_id,
 
-        "status":
-            employee.status,
+        "employment_status": employee.status or "Unknown",
+
+"verification_status": "Verified",
 
         "trust_score":
             94,

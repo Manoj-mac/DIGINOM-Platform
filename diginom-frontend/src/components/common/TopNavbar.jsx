@@ -1,119 +1,97 @@
 import {
-
+    AppBar,
+    Toolbar,
+    Typography,
     Box,
-
-    Button
-
+    IconButton,
+    Badge,
+    Avatar,
+    Tooltip,
 } from "@mui/material";
 
-import AutoAwesomeRoundedIcon
-    from "@mui/icons-material/AutoAwesomeRounded";
+import NotificationsOutlinedIcon from "@mui/icons-material/NotificationsOutlined";
+import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
+import LogoutOutlinedIcon from "@mui/icons-material/LogoutOutlined";
 
-import SearchBar
-    from "./SearchBar";
+import { useNavigate } from "react-router-dom";
 
-import NotificationBell
-    from "./NotificationBell";
+export default function TopNavbar() {
+    const navigate = useNavigate();
 
-import ThemeSwitcher
-    from "./ThemeSwitcher";
+    const employeeName =
+        localStorage.getItem("employee_name") || "Employee";
 
-import UserMenu
-    from "./UserMenu";
+    const initials = employeeName
+        .split(" ")
+        .map((n) => n[0])
+        .join("")
+        .substring(0, 2)
+        .toUpperCase();
 
-function TopNavbar() {
+    const logout = () => {
+        localStorage.clear();
+        navigate("/login");
+    };
 
     return (
-
-        <Box
-
+        <AppBar
+            position="sticky"
+            elevation={0}
+            color="transparent"
             sx={{
-
-                display: "flex",
-
-                justifyContent: "space-between",
-
-                alignItems: "center",
-
-                p: 3,
-
-                borderBottom:
-                    "1px solid rgba(255,255,255,.06)",
-
-                background:
-                    "rgba(2,6,23,.65)",
-
-                backdropFilter:
-                    "blur(20px)",
-
-                position: "sticky",
-
-                top: 0,
-
-                zIndex: 100
-
+                backdropFilter: "blur(20px)",
+                background: "rgba(255,255,255,0.75)",
+                borderBottom: "1px solid rgba(0,0,0,.06)",
             }}
-
         >
+            <Toolbar sx={{ justifyContent: "space-between" }}>
+                <Box>
+                    <Typography variant="h5" fontWeight={700}>
+                        DIGINOM
+                    </Typography>
 
-            <SearchBar />
+                    <Typography variant="body2" color="text.secondary">
+                        Digital Workforce Identity Platform
+                    </Typography>
+                </Box>
 
-            <Box
+                <Box display="flex" alignItems="center" gap={1}>
+                    <Tooltip title="Notifications">
+                        <IconButton>
+                            <Badge badgeContent={3} color="error">
+                                <NotificationsOutlinedIcon />
+                            </Badge>
+                        </IconButton>
+                    </Tooltip>
 
-                sx={{
+                    <Tooltip title="Settings">
+                        <IconButton>
+                            <SettingsOutlinedIcon />
+                        </IconButton>
+                    </Tooltip>
 
-                    display: "flex",
+                    <Avatar
+                        sx={{
+                            width: 40,
+                            height: 40,
+                            bgcolor: "primary.main",
+                            fontWeight: 700,
+                        }}
+                    >
+                        {initials}
+                    </Avatar>
 
-                    alignItems: "center",
+                    <Typography fontWeight={600}>
+                        {employeeName}
+                    </Typography>
 
-                    gap: 2
-
-                }}
-
-            >
-
-                <Button
-
-                    variant="contained"
-
-                    startIcon={
-                        <AutoAwesomeRoundedIcon />
-                    }
-
-                    sx={{
-
-                        borderRadius: 4,
-
-                        px: 3,
-
-                        background:
-                            "linear-gradient(90deg,#00E5FF,#2563EB)",
-
-                        textTransform:
-                            "none",
-
-                        fontWeight: 700
-
-                    }}
-
-                >
-
-                    DIGINOM AI
-
-                </Button>
-
-                <NotificationBell count={3} />
-
-                <ThemeSwitcher />
-
-                <UserMenu />
-
-            </Box>
-
-        </Box>
-
+                    <Tooltip title="Logout">
+                        <IconButton onClick={logout}>
+                            <LogoutOutlinedIcon />
+                        </IconButton>
+                    </Tooltip>
+                </Box>
+            </Toolbar>
+        </AppBar>
     );
-
 }
-
-export default TopNavbar;

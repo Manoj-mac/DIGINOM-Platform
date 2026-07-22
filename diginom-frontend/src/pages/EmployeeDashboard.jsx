@@ -18,7 +18,7 @@ import ActivityTimeline from "../components/Employee/ActivityTimeline";
 
 import NotificationPanel from "../components/Employee/NotificationPanel";
 
-import DashboardLayout from "../dashboard/DashboardLayout";
+import DashboardLayout from "../components/dashboard/DashboardLayout";
 function EmployeeDashboard() {
 
     const [employee, setEmployee] = useState(null);

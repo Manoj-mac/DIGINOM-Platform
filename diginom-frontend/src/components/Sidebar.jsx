@@ -15,6 +15,7 @@ import {
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import PeopleIcon from "@mui/icons-material/People";
 import WorkIcon from "@mui/icons-material/Work";
+import BadgeIcon from "@mui/icons-material/Badge";
 import AssignmentIcon from "@mui/icons-material/Assignment";
 import AnalyticsIcon from "@mui/icons-material/Analytics";
 import TimelineIcon from "@mui/icons-material/Timeline";
@@ -29,7 +30,7 @@ import {
     useLocation
 } from "react-router-dom";
 
-const drawerWidth = 300;
+const drawerWidth = 280;
 
 function Sidebar() {
 
@@ -37,12 +38,12 @@ function Sidebar() {
     const location = useLocation();
 
     const role =
-        localStorage
-            .getItem("role")
-            ?.toUpperCase() || "EMPLOYEE";
+        localStorage.getItem("role")?.toUpperCase() ||
+        "EMPLOYEE";
 
     const employeeName =
-        localStorage.getItem("employee_name") || "Employee";
+        localStorage.getItem("employee_name") ||
+        "Employee";
 
     let menuItems = [];
 
@@ -50,9 +51,7 @@ function Sidebar() {
 
         menuItems = [
 
-            {
-                section: "MAIN"
-            },
+            { section: "MAIN" },
 
             {
                 text: "Dashboard",
@@ -90,9 +89,7 @@ function Sidebar() {
                 path: "/resumes"
             },
 
-            {
-                section: "RECRUITMENT"
-            },
+            { section: "RECRUITMENT" },
 
             {
                 text: "Jobs",
@@ -118,9 +115,7 @@ function Sidebar() {
                 path: "/pipeline"
             },
 
-            {
-                section: "SYSTEM"
-            },
+            { section: "SYSTEM" },
 
             {
                 text: "Analytics",
@@ -138,19 +133,21 @@ function Sidebar() {
                 text: "Notifications",
                 icon: <NotificationsIcon />,
                 path: "/notifications"
+            },
+
+            {
+                text: "Identity Center",
+                icon: <BadgeIcon />,
+                path: "/identity-center"
             }
 
         ];
 
-    }
-
-    else if (role === "HR") {
+    } else if (role === "HR") {
 
         menuItems = [
 
-            {
-                section: "MAIN"
-            },
+            { section: "MAIN" },
 
             {
                 text: "Dashboard",
@@ -182,9 +179,7 @@ function Sidebar() {
                 path: "/documents"
             },
 
-            {
-                section: "SYSTEM"
-            },
+            { section: "SYSTEM" },
 
             {
                 text: "Notifications",
@@ -194,15 +189,11 @@ function Sidebar() {
 
         ];
 
-    }
-
-    else if (role === "RECRUITER") {
+    } else if (role === "RECRUITER") {
 
         menuItems = [
 
-            {
-                section: "RECRUITMENT"
-            },
+            { section: "RECRUITMENT" },
 
             {
                 text: "Dashboard",
@@ -240,9 +231,7 @@ function Sidebar() {
                 path: "/recruiter-notes"
             },
 
-            {
-                section: "SYSTEM"
-            },
+            { section: "SYSTEM" },
 
             {
                 text: "Notifications",
@@ -252,15 +241,11 @@ function Sidebar() {
 
         ];
 
-    }
-
-    else {
+    } else {
 
         menuItems = [
 
-            {
-                section: "WORKSPACE"
-            },
+            { section: "WORKSPACE" },
 
             {
                 text: "Dashboard",
@@ -287,78 +272,56 @@ function Sidebar() {
     return (
 
         <Drawer
-
             variant="permanent"
-
             sx={{
-
                 width: drawerWidth,
-
                 flexShrink: 0,
 
                 "& .MuiDrawer-paper": {
-
                     width: drawerWidth,
-
-                    background:
-                        "rgba(15,23,42,.92)",
-
-                    backdropFilter:
-                        "blur(25px)",
-
-                    borderRight:
-                        "1px solid rgba(255,255,255,.08)",
-
-                    color: "#ffffff",
-
-                    boxSizing: "border-box",
-
-                    overflowX: "hidden"
-
+                    display: "flex",
+                    flexDirection: "column",
+                    background: "rgba(15,23,42,.96)",
+                    backdropFilter: "blur(20px)",
+                    borderRight: "1px solid rgba(255,255,255,.08)",
+                    color: "#fff",
+                    overflow: "hidden",
+                    boxSizing: "border-box"
                 }
-
             }}
-
         >
 
-            <Toolbar>
+            {/* Logo */}
+
+            <Toolbar
+                sx={{
+                    minHeight: 88,
+                    px: 3,
+                    display: "flex",
+                    alignItems: "center"
+                }}
+            >
 
                 <Box>
 
                     <Typography
-
                         variant="h4"
-
-                        fontWeight="800"
-
+                        fontWeight={800}
                         sx={{
-
                             color: "#00E5FF",
-
                             letterSpacing: 1
-
                         }}
-
                     >
-
                         DIGINOM
-
                     </Typography>
 
                     <Typography
-
                         variant="caption"
-
                         sx={{
-
                             color: "#94A3B8"
-
                         }}
-
                     >
-
                         Workforce Identity Platform
-
                     </Typography>
 
                 </Box>
@@ -367,7 +330,25 @@ function Sidebar() {
 
             <Divider sx={{ borderColor: "rgba(255,255,255,.08)" }} />
 
-            <List sx={{ px: 2, mt: 2 }}>
+            {/* Scrollable Menu */}
+
+            <List
+                sx={{
+                    flex: 1,
+                    px: 2,
+                    py: 2,
+                    overflowY: "auto",
+
+                    "&::-webkit-scrollbar": {
+                        width: 6
+                    },
+
+                    "&::-webkit-scrollbar-thumb": {
+                        background: "rgba(255,255,255,.15)",
+                        borderRadius: 10
+                    }
+                }}
+            >
 
                 {menuItems.map((item, index) => {
 
@@ -376,31 +357,19 @@ function Sidebar() {
                         return (
 
                             <Typography
-
                                 key={index}
-
                                 sx={{
-
                                     color: "#64748B",
-
                                     fontSize: 11,
-
                                     fontWeight: 700,
-
                                     letterSpacing: 2,
-
-                                    mt: 3,
-
+                                    mt: index === 0 ? 0 : 3,
                                     mb: 1,
-
-                                    px: 2
-
+                                    px: 2,
+                                    textTransform: "uppercase"
                                 }}
-
                             >
-
                                 {item.section}
-
                             </Typography>
 
                         );
@@ -413,24 +382,15 @@ function Sidebar() {
                     return (
 
                         <ListItemButton
-
                             key={item.text}
-
-                            onClick={() =>
-                                navigate(item.path)
-                            }
-
+                            onClick={() => navigate(item.path)}
                             sx={{
-
+                                position: "relative",
                                 borderRadius: 3,
-
                                 mb: 1,
-
                                 py: 1.4,
-
                                 px: 2,
-
-                                transition: ".25s",
+                                transition: "all .25s ease",
 
                                 background: active
                                     ? "linear-gradient(90deg,#00E5FF,#2563EB)"
@@ -440,51 +400,46 @@ function Sidebar() {
                                     ? "#fff"
                                     : "#CBD5E1",
 
-                                "&:hover": {
+                                "&::before": active
+                                    ? {
+                                        content: '""',
+                                        position: "absolute",
+                                        left: 0,
+                                        top: 8,
+                                        bottom: 8,
+                                        width: 4,
+                                        borderRadius: 10,
+                                        background: "#00E5FF"
+                                    }
+                                    : {},
 
+                                "&:hover": {
                                     background: active
                                         ? "linear-gradient(90deg,#00E5FF,#2563EB)"
-                                        : "rgba(255,255,255,.05)",
+                                        : "rgba(255,255,255,.06)",
 
-                                    transform:
-                                        "translateX(6px)"
-
+                                    transform: "translateX(6px)"
                                 }
-
                             }}
-
                         >
 
                             <ListItemIcon
-
                                 sx={{
-
+                                    minWidth: 40,
                                     color: active
                                         ? "#fff"
-                                        : "#94A3B8",
-
-                                    minWidth: 40
-
+                                        : "#94A3B8"
                                 }}
-
                             >
-
                                 {item.icon}
-
                             </ListItemIcon>
 
                             <ListItemText
-
                                 primary={item.text}
-
                                 primaryTypographyProps={{
-
                                     fontWeight: 600,
-
                                     fontSize: 14
-
                                 }}
-
                             />
 
                         </ListItemButton>
@@ -495,48 +450,45 @@ function Sidebar() {
 
             </List>
 
-            <Box sx={{ flexGrow: 1 }} />
+            <Divider
+                sx={{
+                    borderColor: "rgba(255,255,255,.08)"
+                }}
+            />
 
-            <Divider sx={{ borderColor: "rgba(255,255,255,.08)" }} />
+            {/* Footer */}
 
-            <Box sx={{ p: 3 }}>
+            <Box
+                sx={{
+                    p: 3
+                }}
+            >
 
                 <Box
-
                     sx={{
-
                         display: "flex",
-
                         alignItems: "center",
-
                         gap: 2
-
                     }}
-
                 >
 
                     <Avatar
-
                         sx={{
-
+                            width: 48,
+                            height: 48,
                             bgcolor: "#00E5FF",
-
                             color: "#000",
-
                             fontWeight: 700
-
                         }}
-
                     >
-
-                        {employeeName.charAt(0)}
-
+                        {employeeName.charAt(0).toUpperCase()}
                     </Avatar>
 
                     <Box>
 
                         <Typography
-                            fontWeight="700"
+                            fontWeight={700}
+                            color="white"
                         >
                             {employeeName}
                         </Typography>
@@ -555,23 +507,16 @@ function Sidebar() {
                 </Box>
 
                 <Chip
-
                     label="Trust Score : 94"
-
                     sx={{
-
                         mt: 2,
-
                         width: "100%",
-
-                        bgcolor: "rgba(0,229,255,.15)",
-
+                        height: 36,
+                        bgcolor: "rgba(0,229,255,.12)",
                         color: "#00E5FF",
-
-                        fontWeight: 700
-
+                        fontWeight: 700,
+                        border: "1px solid rgba(0,229,255,.25)"
                     }}
-
                 />
 
             </Box>
@@ -582,4 +527,4 @@ function Sidebar() {
 
 }
 
-export default Sidebar;
+export default Sidebar; 

@@ -37,6 +37,7 @@ function Login() {
                     }
                 }
             );
+            console.log(response.data);
 
             localStorage.setItem(
                 "token",

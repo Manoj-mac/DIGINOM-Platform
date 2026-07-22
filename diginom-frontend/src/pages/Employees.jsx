@@ -1,527 +1,470 @@
-import { useEffect, useState } from "react";
-
+import { useEffect, useMemo, useState } from "react";
 import {
     Box,
-    Typography,
     Button,
-    Card,
-    CardContent,
-    TextField,
-    Table,
-    TableBody,
-    TableCell,
-    TableContainer,
-    TableHead,
+    Grid,
+    IconButton,
+    Stack,
+    Tooltip,
+    Typography,
     TableRow,
-    Paper
+    TableCell
 } from "@mui/material";
+import {
+    People,
+    VerifiedUser,
+    PendingActions,
+    Shield,
+    Edit,
+    Timeline,
+    Delete,
+} from "@mui/icons-material";
+
+import { useNavigate } from "react-router-dom";
 
 import api from "../api/api";
-import Sidebar from "../components/Sidebar";
-import { useNavigate } from "react-router-dom";
-import ConfirmDialog
-    from "../components/ConfirmDialog";
-import AppSnackbar
-    from "../components/AppSnackbar";
 
+import DashboardLayout from "../components/dashboard/DashboardLayout";
+import PageHeader from "../components/Layout/PageHeader";
+
+import MetricCard from "../components/ui/MetricCard";
+import SearchToolbar from "../components/ui/SearchToolbar";
+import AppTable from "../components/ui/AppTable";
+import StatusChip from "../components/ui/StatusChip";
+import AccountCircle from "@mui/icons-material/AccountCircle";
+
+
+import ConfirmDialog from "../components/ConfirmDialog";
+import AppSnackbar from "../components/AppSnackbar";
 function Employees() {
 
-    const [employees, setEmployees] = useState([]);
-    const [trustScores, setTrustScores] =
-        useState({});
-    const [search, setSearch] = useState("");
-
-    const [confirmOpen,
-        setConfirmOpen] =
-        useState(false);
-
-    const [selectedEmployee,
-        setSelectedEmployee] =
-        useState(null);
     const navigate = useNavigate();
 
+    const [employees, setEmployees] = useState([]);
+    const [trustScores, setTrustScores] = useState({});
+    const [search, setSearch] = useState("");
 
-    const [snackbarOpen,
-        setSnackbarOpen] =
-        useState(false);
+    const [confirmOpen, setConfirmOpen] = useState(false);
+    const [selectedEmployee, setSelectedEmployee] = useState(null);
 
-    const [snackbarMessage,
-        setSnackbarMessage] =
-        useState("");
+    const [snackbarOpen, setSnackbarOpen] = useState(false);
+    const [snackbarMessage, setSnackbarMessage] = useState("");
+    const [snackbarSeverity, setSnackbarSeverity] = useState("success");
 
-    const [snackbarSeverity,
-        setSnackbarSeverity] =
-        useState("success");
-    useEffect(() => {
+    const loadEmployees = async () => {
+        try {
 
-        const fetchEmployees = async () => {
+            const token = localStorage.getItem("token");
 
-            try {
+            const response = await api.get("/employees", {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            });
 
-                const token =
-                    localStorage.getItem(
-                        "token"
-                    );
+            setEmployees(response.data);
 
-                const response =
-                    await api.get(
-                        "/employees",
-                        {
-                            headers: {
-                                Authorization:
-                                    `Bearer ${token}`
-                            }
-                        }
-                    );
+            const scores = {};
 
-                setEmployees(
-                    response.data
-                );
-
-                const scores = {};
-
-                for (
-                    const employee
-                    of response.data
-                ) {
-
+            await Promise.all(
+                response.data.map(async (employee) => {
                     try {
 
-                        const scoreResponse =
-                            await api.get(
-                                `/employees/${employee.employee_id}/trust-score`,
-                                {
-                                    headers: {
-                                        Authorization:
-                                            `Bearer ${token}`
-                                    }
+                        const score = await api.get(
+                            `/employees/${employee.employee_id}/trust-score`,
+                            {
+                                headers: {
+                                    Authorization: `Bearer ${token}`
                                 }
-                            );
+                            }
+                        );
 
-                        scores[
-                            employee.employee_id
-                        ] =
-                            scoreResponse.data
-                                .trust_score;
+                        scores[employee.employee_id] =
+                            score.data.trust_score;
 
                     } catch {
 
-                        scores[
-                            employee.employee_id
-                        ] = 0;
+                        scores[employee.employee_id] = 0;
+
                     }
-                }
+                })
+            );
 
-                setTrustScores(
-                    scores
-                );
+            setTrustScores(scores);
 
-            } catch (error) {
+        } catch (err) {
 
-                console.log(
-                    error
-                );
-            }
-        };
+            console.log(err);
 
-        fetchEmployees();
+        }
+    };
 
+    useEffect(() => {
+        loadEmployees();
     }, []);
 
-    const deleteEmployee =
-        async () => {
+    const deleteEmployee = async () => {
 
-            try {
+        try {
 
-                const token =
-                    localStorage.getItem(
-                        "token"
-                    );
+            const token = localStorage.getItem("token");
 
-                await api.delete(
-
-                    `/employees/${selectedEmployee}`,
-
-                    {
-                        headers: {
-                            Authorization:
-                                `Bearer ${token}`
-                        }
+            await api.delete(
+                `/employees/${selectedEmployee}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`
                     }
-                );
+                }
+            );
 
-                setEmployees(
+            setEmployees((prev) =>
+                prev.filter(
+                    (item) =>
+                        item.employee_id !== selectedEmployee
+                )
+            );
 
-                    employees.filter(
+            setConfirmOpen(false);
+            setSelectedEmployee(null);
 
-                        (employee) =>
+            setSnackbarMessage("Employee deleted successfully");
+            setSnackbarSeverity("success");
+            setSnackbarOpen(true);
 
-                            employee.employee_id !==
+        } catch (err) {
 
-                            selectedEmployee
-                    )
-                );
+            console.log(err);
 
-                setConfirmOpen(
-                    false
-                );
+            setSnackbarMessage("Failed to delete employee");
+            setSnackbarSeverity("error");
+            setSnackbarOpen(true);
 
-                setSelectedEmployee(
-                    null
-                );
+        }
+    };
 
-                setSnackbarMessage(
-                    "Employee deleted successfully"
-                );
+    const filteredEmployees = useMemo(() => {
 
-                setSnackbarSeverity(
-                    "success"
-                );
+        return employees.filter((employee) => {
 
-                setSnackbarOpen(
-                    true
-                );
+            const keyword = search.toLowerCase();
 
-            } catch (error) {
+            return (
+                employee.first_name?.toLowerCase().includes(keyword) ||
+                employee.email?.toLowerCase().includes(keyword) ||
+                employee.role?.toLowerCase().includes(keyword)
+            );
 
-                console.log(error);
+        });
 
-                setSnackbarMessage(
-                    "Failed to delete employee"
-                );
+    }, [employees, search]);
 
-                setSnackbarSeverity(
-                    "error"
-                );
+    const verifiedEmployees = Object.values(trustScores).filter(
+        (score) => score >= 80
+    ).length;
 
-                setSnackbarOpen(
-                    true
-                );
-            }
-        };
+    const pendingEmployees = Object.values(trustScores).filter(
+        (score) => score < 80
+    ).length;
 
-    const filteredEmployees =
-        employees.filter(
-            (employee) =>
-                employee.first_name
-                    ?.toLowerCase()
-                    .includes(
-                        search.toLowerCase()
-                    ) ||
-                employee.email
-                    ?.toLowerCase()
-                    .includes(
-                        search.toLowerCase()
-                    )
-        );
+    const averageTrust =
+        Object.keys(trustScores).length === 0
+            ? 0
+            : Math.round(
+                Object.values(trustScores).reduce(
+                    (a, b) => a + b,
+                    0
+                ) / Object.keys(trustScores).length
+            );
 
     return (
 
-        <Box
-            sx={{
-                display: "flex"
-            }}
-        >
+        <DashboardLayout>
 
-            <Sidebar />
+            <PageHeader
+                title="Employees"
+                subtitle="Manage employees, identities and workforce records."
+                action={
+                    <Button
+                        variant="contained"
+                        onClick={() => navigate("/employees/add")}
+                    >
+                        Add Employee
+                    </Button>
+                }
+            />
 
-            <Box
-                component="main"
-                sx={{
-                    flexGrow: 1,
-                    p: 4,
-                    backgroundColor:
-                        "#f5f7fa",
-                    minHeight:
-                        "100vh"
-                }}
+            <Grid container spacing={3} sx={{ mb: 4 }}>
+
+                <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+                    <MetricCard
+                        title="Total Employees"
+                        value={employees.length}
+                        icon={<People />}
+                    />
+                </Grid>
+
+                <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+                    <MetricCard
+                        title="Verified"
+                        value={verifiedEmployees}
+                        color="#22C55E"
+                        icon={<VerifiedUser />}
+                    />
+                </Grid>
+
+                <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+                    <MetricCard
+                        title="Pending"
+                        value={pendingEmployees}
+                        color="#F59E0B"
+                        icon={<PendingActions />}
+                    />
+                </Grid>
+
+                <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+                    <MetricCard
+                        title="Average Trust"
+                        value={`${averageTrust}%`}
+                        color="#3B82F6"
+                        icon={<Shield />}
+                    />
+                </Grid>
+
+            </Grid>
+
+            <SearchToolbar
+                search={search}
+                onSearchChange={setSearch}
+                onRefresh={loadEmployees}
+                onAdd={() => navigate("/employees/add")}
+                addLabel="Add Employee"
+            />
+
+            <AppTable
+                columns={[
+                    "Employee",
+                    "Email",
+                    "Role",
+                    "Trust Score",
+                    "Status",
+                    "Actions"
+                ]}
             >
 
-                <Typography
-                    variant="h4"
-                    fontWeight="bold"
-                    gutterBottom
-                >
-                    Employees Management
-                </Typography>
+                {filteredEmployees.map((employee) => {
 
-                <Card sx={{ mb: 3 }}>
+                    const trust =
+                        trustScores[employee.employee_id] || 0;
 
-                    <CardContent>
+                    return (
 
-                        <Box
+                        <TableRow
+                            hover
+                            key={employee.employee_id}
                             sx={{
-                                display:
-                                    "flex",
-                                justifyContent:
-                                    "space-between",
-                                gap: 2
+                                "&:hover": {
+                                    backgroundColor: "action.hover"
+                                }
                             }}
                         >
 
-                            <TextField
-                                label="Search Employee"
-                                variant="outlined"
-                                fullWidth
-                                value={search}
-                                onChange={(e) =>
-                                    setSearch(
-                                        e.target.value
-                                    )
-                                }
-                            />
+                            <TableCell>
 
-                            <Button
-                                variant="contained"
-                                onClick={() =>
-                                    navigate(
-                                        "/employees/add"
-                                    )
-                                }
-                            >
-                                Add Employee
-                            </Button>
+                                <Stack
+                                    direction="row"
+                                    spacing={2}
+                                    alignItems="center"
+                                >
 
-                        </Box>
+                                    <Box
+                                        sx={{
+                                            width: 42,
+                                            height: 42,
+                                            borderRadius: "50%",
+                                            bgcolor: "primary.main",
+                                            color: "#fff",
+                                            display: "flex",
+                                            alignItems: "center",
+                                            justifyContent: "center"
+                                        }}
+                                    >
+                                        {employee.first_name?.charAt(0).toUpperCase()}
+                                    </Box>
 
-                    </CardContent>
+                                    <Box>
 
-                </Card>
+                                        <Typography
+                                            fontWeight={600}
+                                        >
+                                            {employee.first_name} {employee.last_name ?? ""}
+                                        </Typography>
 
-                <TableContainer
-                    component={Paper}
-                >
+                                        <Typography
+                                            variant="body2"
+                                            color="text.secondary"
+                                        >
+                                            ID :
+                                            {employee.employee_id}
+                                        </Typography>
 
-                    <Table>
+                                    </Box>
 
-                        <TableHead>
+                                </Stack>
 
-                            <TableRow>
+                            </TableCell>
 
-                                <TableCell>
-                                    Name
-                                </TableCell>
+                            <TableCell>
+                                {employee.email}
+                            </TableCell>
 
-                                <TableCell>
-                                    Email
-                                </TableCell>
+                            <TableCell>
+                                {employee.role}
+                            </TableCell>
 
-                                <TableCell>
-                                    Role
-                                </TableCell>
+                            <TableCell>
 
-                                <TableCell>
-                                    Trust Score
-                                </TableCell>
-
-                                <TableCell>
-                                    Actions
-                                </TableCell>
-
-                            </TableRow>
-
-                        </TableHead>
-
-                        <TableBody>
-
-                            {filteredEmployees.map(
-                                (
-                                    employee
-                                ) => (
-
-                                    <TableRow
-                                        key={
-                                            employee.employee_id
+                                <Typography
+                                    fontWeight={700}
+                                    color={
+                                        trust >= 80
+                                            ? "success.main"
+                                            : trust >= 50
+                                                ? "warning.main"
+                                                : "error.main"
+                                    }
+                                >
+                                    <Typography
+                                        fontWeight={700}
+                                        color={
+                                            trust >= 80
+                                                ? "success.main"
+                                                : trust >= 50
+                                                    ? "warning.main"
+                                                    : "error.main"
                                         }
                                     >
+                                        {trust}%
+                                    </Typography>
+                                </Typography>
 
-                                        <TableCell>
-                                            {employee.first_name}
-                                        </TableCell>
+                            </TableCell>
 
-                                        <TableCell>
-                                            {employee.email}
-                                        </TableCell>
+                            <TableCell>
 
-                                        <TableCell>
-                                            {employee.role}
-                                        </TableCell>
+                                <StatusChip
+                                    status={
+                                        trust >= 80
+                                            ? "Verified"
+                                            : "Pending"
+                                    }
+                                />
 
-                                        <TableCell>
+                            </TableCell>
 
-                                            <Typography
-                                                fontWeight="bold"
-                                                sx={{
-                                                    color:
-                                                        (trustScores[
-                                                            employee.employee_id
-                                                        ] || 0) >= 80
-                                                            ? "#16a34a"
-                                                            : (trustScores[
-                                                                employee.employee_id
-                                                            ] || 0) >= 50
-                                                                ? "#f59e0b"
-                                                                : "#dc2626"
-                                                }}
-                                            >
-                                                {
-                                                    trustScores[
+                            <TableCell>
+
+                                <Stack
+                                    direction="row"
+                                    spacing={1}
+                                >
+
+                                    <Tooltip title="Profile">
+
+                                        <IconButton
+                                            color="success"
+                                            onClick={() =>
+                                                navigate(
+                                                    `/employee-profile/${employee.employee_id}`
+                                                )
+                                            }
+                                        >
+                                            <AccountCircle />
+                                        </IconButton>
+
+                                    </Tooltip>
+
+                                    <Tooltip title="Edit">
+
+                                        <IconButton
+                                            color="primary"
+                                            onClick={() =>
+                                                navigate(
+                                                    `/employees/edit/${employee.employee_id}`
+                                                )
+                                            }
+                                        >
+                                            <Edit />
+                                        </IconButton>
+
+                                    </Tooltip>
+
+                                    <Tooltip title="Timeline">
+
+                                        <IconButton
+                                            color="secondary"
+                                            onClick={() =>
+                                                navigate(
+                                                    `/timeline/${employee.employee_id}`
+                                                )
+                                            }
+                                        >
+                                            <Timeline />
+                                        </IconButton>
+
+                                    </Tooltip>
+
+                                    <Tooltip title="Delete">
+
+                                        <IconButton
+                                            color="error"
+                                            onClick={() => {
+
+                                                setSelectedEmployee(
                                                     employee.employee_id
-                                                    ] || 0
-                                                }/100
-                                            </Typography>
+                                                );
 
-                                        </TableCell>
+                                                setConfirmOpen(true);
 
-                                        <TableCell>
+                                            }}
+                                        >
+                                            <Delete />
+                                        </IconButton>
 
-                                            <Button
-                                                size="small"
-                                                variant="contained"
-                                                color="success"
-                                                sx={{
-                                                    mr: 1
-                                                }}
-                                                onClick={() =>
-                                                    navigate(
-                                                        `/employee-profile/${employee.employee_id}`
-                                                    )
-                                                }
-                                            >
-                                                Profile
-                                            </Button>
+                                    </Tooltip>
 
-                                            <Button
-                                                size="small"
-                                                variant="outlined"
-                                                sx={{
-                                                    mr: 1
-                                                }}
-                                                onClick={() =>
-                                                    navigate(
-                                                        `/employees/edit/${employee.employee_id}`
-                                                    )
-                                                }
-                                            >
-                                                Edit
-                                            </Button>
+                                </Stack>
 
-                                            <Button
-                                                size="small"
-                                                variant="outlined"
-                                                color="primary"
-                                                sx={{
-                                                    mr: 1
-                                                }}
-                                                onClick={() =>
-                                                    navigate(
-                                                        `/timeline/${employee.employee_id}`
-                                                    )
-                                                }
-                                            >
-                                                Timeline
-                                            </Button>
-                                            <Button
-                                                size="small"
-                                                color="error"
-                                                variant="contained"
-                                                onClick={() => {
+                            </TableCell>
 
-                                                    setSelectedEmployee(
-                                                        employee.employee_id
-                                                    );
+                        </TableRow>
 
-                                                    setConfirmOpen(
-                                                        true
-                                                    );
+                    );
 
-                                                }}
-                                            >
-                                                Delete
-                                            </Button>
-                                        </TableCell>
+                })}
 
-                                    </TableRow>
+            </AppTable>
 
-                                )
-                            )}
+            <ConfirmDialog
+                open={confirmOpen}
+                title="Delete Employee"
+                message="Are you sure you want to delete this employee? This action cannot be undone."
+                onConfirm={deleteEmployee}
+                onCancel={() => {
+                    setConfirmOpen(false);
+                    setSelectedEmployee(null);
+                }}
+            />
 
-                        </TableBody>
+            <AppSnackbar
+                open={snackbarOpen}
+                message={snackbarMessage}
+                severity={snackbarSeverity}
+                onClose={() => setSnackbarOpen(false)}
+            />
 
-                    </Table>
+        </DashboardLayout>
 
-                </TableContainer>
-
-                <ConfirmDialog
-
-                    open={confirmOpen}
-
-                    title="Delete Employee"
-
-                    message="Are you sure you want to delete this employee? This action cannot be undone."
-
-                    onConfirm={
-                        deleteEmployee
-                    }
-
-                    onCancel={() => {
-
-                        setConfirmOpen(
-                            false
-                        );
-
-                        setSelectedEmployee(
-                            null
-                        );
-
-                    }}
-
-                />
-                <ConfirmDialog
-
-                    open={confirmOpen}
-
-                    title="Delete Employee"
-
-                    message="Are you sure you want to delete this employee? This action cannot be undone."
-
-                    onConfirm={
-                        deleteEmployee
-                    }
-
-                    onCancel={() => {
-
-                        setConfirmOpen(
-                            false
-                        );
-
-                        setSelectedEmployee(
-                            null
-                        );
-
-                    }}
-
-                />
-
-                <AppSnackbar
-
-                    open={snackbarOpen}
-
-                    message={snackbarMessage}
-
-                    severity={snackbarSeverity}
-
-                    onClose={() =>
-                        setSnackbarOpen(
-                            false
-                        )
-                    }
-
-                />
-
-            </Box>
-
-        </Box>
     );
 }
 

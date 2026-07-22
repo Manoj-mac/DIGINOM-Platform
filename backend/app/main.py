@@ -278,6 +278,8 @@ from app.profile_completion_crud import (
 from fastapi import HTTPException
 from app.identity_crud import get_employee_identity
 
+from app.device_routes import router as device_router
+
 
 
 

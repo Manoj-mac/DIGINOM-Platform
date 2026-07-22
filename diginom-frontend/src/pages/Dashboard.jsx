@@ -1,54 +1,57 @@
 import { useEffect, useState } from "react";
 
 import {
-    Box,
+    Grid,
     Typography
 } from "@mui/material";
 
+import PeopleAltRoundedIcon from "@mui/icons-material/PeopleAltRounded";
+import SchoolRoundedIcon from "@mui/icons-material/SchoolRounded";
+import VerifiedRoundedIcon from "@mui/icons-material/VerifiedRounded";
+import DescriptionRoundedIcon from "@mui/icons-material/Description";
+import WorkRoundedIcon from "@mui/icons-material/Work";
+import BadgeRoundedIcon from "@mui/icons-material/BadgeRounded";
+
 import api from "../api/api";
-import Sidebar from "../components/Sidebar";
-import DashboardCard from "../components/DashboardCard";
-import NotificationBell from "../components/NotificationBell";
+
+
+import DashboardLayout from "../components/dashboard/DashboardLayout";
+import PageHeader from "../components/Layout/PageHeader";
+
+
+import MetricCard from "../components/ui/MetricCard";
+import AppCard from "../components/ui/AppCard";
 
 function Dashboard() {
 
-    const [stats, setStats] =
-        useState({});
+    const [stats, setStats] = useState({});
 
     useEffect(() => {
 
-        const fetchStats =
-            async () => {
+        const fetchStats = async () => {
 
-                try {
+            try {
 
-                    const token =
-                        localStorage.getItem(
-                            "token"
-                        );
+                const token = localStorage.getItem("token");
 
-                    const response =
-                        await api.get(
+                const response = await api.get(
+                    "/dashboard/stats",
+                    {
+                        headers: {
+                            Authorization: `Bearer ${token}`
+                        }
+                    }
+                );
 
-                            "/dashboard/stats",
+                setStats(response.data);
 
-                            {
-                                headers: {
-                                    Authorization:
-                                        `Bearer ${token}`
-                                }
-                            }
-                        );
+            } catch (error) {
 
-                    setStats(
-                        response.data
-                    );
+                console.error(error);
 
-                } catch (error) {
+            }
 
-                    console.log(error);
-                }
-            };
+        };
 
         fetchStats();
 
@@ -56,116 +59,125 @@ function Dashboard() {
 
     return (
 
-        <Box
-            sx={{
-                display: "flex"
-            }}
-        >
+        <DashboardLayout>
 
-            <Sidebar />
+            <PageHeader
+                title="Dashboard"
+                subtitle="Welcome to the DIGINOM Workforce Identity Platform"
+            />
 
-            <Box
-                component="main"
-                sx={{
-                    flexGrow: 1,
-                    p: 4,
-                    backgroundColor:
-                        "#f5f7fa",
-                    minHeight:
-                        "100vh"
-                }}
-            >
+            <Grid container spacing={3}>
 
-                <Box
-                    sx={{
-                        display: "flex",
-                        justifyContent:
-                            "space-between",
-                        alignItems:
-                            "center",
-                        mb: 4
-                    }}
-                >
+                <Grid size={{ xs: 12, sm: 6, lg: 4, xl: 2 }}>
+                    <MetricCard
+                        title="Employees"
+                        value={stats.employees || 0}
+                        icon={<PeopleAltRoundedIcon />}
+                    />
+                </Grid>
 
-                    <Box>
+                <Grid size={{ xs: 12, sm: 6, lg: 4, xl: 2 }}>
+                    <MetricCard
+                        title="Skills"
+                        value={stats.skills || 0}
+                        icon={<SchoolRoundedIcon />}
+                        color="#8B5CF6"
+                    />
+                </Grid>
 
-                        <Typography
-                            variant="h4"
-                            fontWeight="bold"
-                        >
-                            DIGINOM Dashboard 🚀
+                <Grid size={{ xs: 12, sm: 6, lg: 4, xl: 2 }}>
+                    <MetricCard
+                        title="Certifications"
+                        value={stats.certifications || 0}
+                        icon={<VerifiedRoundedIcon />}
+                        color="#22C55E"
+                    />
+                </Grid>
+
+                <Grid size={{ xs: 12, sm: 6, lg: 4, xl: 2 }}>
+                    <MetricCard
+                        title="Documents"
+                        value={stats.documents || 0}
+                        icon={<DescriptionRoundedIcon />}
+                        color="#F59E0B"
+                    />
+                </Grid>
+
+                <Grid size={{ xs: 12, sm: 6, lg: 4, xl: 2 }}>
+                    <MetricCard
+                        title="Jobs"
+                        value={stats.jobs || 0}
+                        icon={<WorkRoundedIcon />}
+                        color="#2563EB"
+                    />
+                </Grid>
+
+                <Grid size={{ xs: 12, sm: 6, lg: 4, xl: 2 }}>
+                    <MetricCard
+                        title="Verifications"
+                        value={stats.verifications || 0}
+                        icon={<BadgeRoundedIcon />}
+                        color="#06B6D4"
+                    />
+                </Grid>
+
+                <Grid size={{ xs: 12, lg: 8 }}>
+                    <AppCard sx={{ minHeight: 380 }}>
+                        <Typography variant="h6" fontWeight={700}>
+                            Recruitment Analytics
                         </Typography>
 
                         <Typography
-                            variant="body1"
+                            mt={2}
                             color="text.secondary"
                         >
-                            Talent Intelligence & Verification Platform
+                            Charts will be integrated here using Recharts.
+                        </Typography>
+                    </AppCard>
+                </Grid>
+
+                <Grid size={{ xs: 12, lg: 4 }}>
+                    <AppCard sx={{ minHeight: 380 }}>
+                        <Typography variant="h6" fontWeight={700}>
+                            Quick Actions
                         </Typography>
 
-                    </Box>
+                        <Typography
+                            mt={2}
+                            color="text.secondary"
+                        >
+                            Add Employee
+                        </Typography>
 
-                    <NotificationBell />
+                        <Typography
+                            mt={1}
+                            color="text.secondary"
+                        >
+                            Create Job
+                        </Typography>
 
-                </Box>
+                        <Typography
+                            mt={1}
+                            color="text.secondary"
+                        >
+                            Upload Resume
+                        </Typography>
 
-                <Box
-                    sx={{
-                        display: "grid",
-                        gridTemplateColumns:
-                            "repeat(auto-fit, minmax(250px, 1fr))",
-                        gap: 3
-                    }}
-                >
+                        <Typography
+                            mt={1}
+                            color="text.secondary"
+                        >
+                            Identity Verification
+                        </Typography>
+                    </AppCard>
+                </Grid>
 
-                    <DashboardCard
-                        title="Employees"
-                        value={
-                            stats.employees || 0
-                        }
-                    />
+            </Grid>
 
-                    <DashboardCard
-                        title="Skills"
-                        value={
-                            stats.skills || 0
-                        }
-                    />
+        </DashboardLayout>
 
-                    <DashboardCard
-                        title="Certifications"
-                        value={
-                            stats.certifications || 0
-                        }
-                    />
-
-                    <DashboardCard
-                        title="Documents"
-                        value={
-                            stats.documents || 0
-                        }
-                    />
-
-                    <DashboardCard
-                        title="Jobs"
-                        value={
-                            stats.jobs || 0
-                        }
-                    />
-
-                    <DashboardCard
-                        title="Verifications"
-                        value={
-                            stats.verifications || 0
-                        }
-                    />
-
-                </Box>
-
-            </Box>
-
-        </Box>
     );
+
 }
 
 export default Dashboard;

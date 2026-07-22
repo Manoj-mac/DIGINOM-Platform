@@ -1,13 +1,8 @@
 export const SPACING = {
-
-    xs: 1,
-
-    sm: 2,
-
-    md: 3,
-
-    lg: 4,
-
-    xl: 6
-
+    page: 4,
+    section: 4,
+    card: 3,
+    grid: 3,
+    input: 2,
+    button: 2
 };

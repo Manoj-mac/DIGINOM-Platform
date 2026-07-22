@@ -1,13 +1,10 @@
 import { Box } from "@mui/material";
 
-import Sidebar from "../components/Sidebar";
+import Sidebar from "../Sidebar";
+import TopNavbar from "../common/TopNavbar";
 
-import DashboardBackground
-    from "../components/ui/DashboardBackground";
-
-import TopNavbar
-    from "../components/common/TopNavbar";
-
+import DashboardBackground from "../ui/DashboardBackground";
+import PageContainer from "../Layout/PageContainer";
 function DashboardLayout({ children }) {
 
     return (
@@ -17,8 +14,9 @@ function DashboardLayout({ children }) {
             <Box
                 sx={{
                     display: "flex",
-                    minHeight: "100vh",
-                    width: "100%"
+                    width: "100%",
+                    height: "100vh",
+                    overflow: "hidden"
                 }}
             >
 
@@ -33,6 +31,7 @@ function DashboardLayout({ children }) {
                         flex: 1,
                         display: "flex",
                         flexDirection: "column",
+                        minWidth: 0,
                         overflow: "hidden"
                     }}
                 >
@@ -41,20 +40,23 @@ function DashboardLayout({ children }) {
 
                     <TopNavbar />
 
-                    {/* Page Content */}
+                    {/* Scrollable Content */}
 
                     <Box
                         component="main"
                         sx={{
                             flex: 1,
-                            p: 4,
                             overflowY: "auto",
-                            position: "relative",
-                            zIndex: 5
+                            overflowX: "hidden",
+                            bgcolor: "background.default"
                         }}
                     >
 
-                        {children}
+                        <PageContainer>
+
+                            {children}
+
+                        </PageContainer>
 
                     </Box>
 

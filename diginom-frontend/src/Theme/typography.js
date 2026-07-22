@@ -1,61 +1,26 @@
-const typography = {
+export const TYPOGRAPHY = {
 
-    fontFamily:
-
-        "'Inter','Poppins',sans-serif",
-
-    h1: {
-
-        fontSize: "3rem",
-
+    pageTitle: {
+        fontSize: 32,
         fontWeight: 700
-
     },
 
-    h2: {
-
-        fontSize: "2.5rem",
-
+    sectionTitle: {
+        fontSize: 22,
         fontWeight: 700
-
     },
 
-    h3: {
-
-        fontSize: "2rem",
-
-        fontWeight: 700
-
-    },
-
-    h4: {
-
-        fontSize: "1.7rem",
-
+    cardTitle: {
+        fontSize: 18,
         fontWeight: 600
-
     },
 
-    h5: {
-
-        fontSize: "1.3rem",
-
-        fontWeight: 600
-
+    body: {
+        fontSize: 15
     },
 
-    body1: {
-
-        fontSize: "1rem"
-
-    },
-
-    body2: {
-
-        fontSize: ".9rem"
-
+    caption: {
+        fontSize: 13
     }
 
 };
-
-export default typography;

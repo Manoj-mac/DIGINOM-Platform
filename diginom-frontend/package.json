@@ -38,7 +38,7 @@
     "react-qr-code": "^2.2.0",
     "react-router-dom": "^7.17.0",
     "react-tsparticles": "^2.12.2",
-    "recharts": "^3.9.0",
+    "recharts": "^3.10.0",
     "tsparticles": "^4.3.0"
   },
   "devDependencies": {

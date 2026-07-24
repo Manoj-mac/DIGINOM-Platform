@@ -11,6 +11,11 @@ import Sidebar from "../components/Sidebar";
 import DashboardCard from "../components/DashboardCard";
 import api from "../api/api";
 
+import RecentEmployees from "../components/hr/RecentEmployees";
+import PendingDocuments from "../components/hr/PendingDocuments";
+import PendingCertifications from "../components/hr/PendingCertifications";
+import QuickActions from "../components/hr/QuickActions";
+
 function HRDashboard() {
 
     const [stats, setStats] = useState({});
@@ -27,26 +32,32 @@ function HRDashboard() {
 
             const token = localStorage.getItem("token");
 
-            const response = await api.get("/hr-dashboard", {
-                headers: {
-                    Authorization: `Bearer ${token}`
+            const response = await api.get(
+                "/hr-dashboard",
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
                 }
-            });
+            );
 
             setStats(response.data);
 
         } catch (err) {
 
             console.error(err);
-            setError("Failed to load dashboard data.");
+            setError("Failed to load HR dashboard.");
 
         } finally {
 
             setLoading(false);
+
         }
+
     };
 
     if (loading) {
+
         return (
             <Box
                 display="flex"
@@ -57,6 +68,7 @@ function HRDashboard() {
                 <CircularProgress />
             </Box>
         );
+
     }
 
     return (
@@ -83,12 +95,20 @@ function HRDashboard() {
                 </Typography>
 
                 {error && (
-                    <Alert severity="error" sx={{ mb: 3 }}>
+                    <Alert
+                        severity="error"
+                        sx={{ mb: 3 }}
+                    >
                         {error}
                     </Alert>
                 )}
 
-                <Grid container spacing={3}>
+                {/* KPI Cards */}
+
+                <Grid
+                    container
+                    spacing={3}
+                >
 
                     <Grid item xs={12} sm={6} md={4} lg={3}>
                         <DashboardCard
@@ -146,10 +166,48 @@ function HRDashboard() {
                         />
                     </Grid>
 
-                    <Grid item xs={12} sm={6} md={4} lg={3}>
+                    <Grid item xs={12}>
                         <DashboardCard
                             title="Average Trust Score"
-                            value={Number(stats.average_trust_score ?? 0).toFixed(2)}
+                            value={Number(
+                                stats.average_trust_score ?? 0
+                            ).toFixed(2)}
+                        />
+                    </Grid>
+
+                </Grid>
+
+                {/* Dashboard Widgets */}
+
+                <Grid
+                    container
+                    spacing={3}
+                    sx={{ mt: 2 }}
+                >
+
+                    <Grid item xs={12} lg={8}>
+                        <RecentEmployees
+                            employees={stats.recent_employees || []}
+                        />
+                    </Grid>
+
+                    <Grid item xs={12} lg={4}>
+                        <QuickActions />
+                    </Grid>
+
+                    <Grid item xs={12} md={6}>
+                        <PendingDocuments
+                            documents={
+                                stats.pending_document_list || []
+                            }
+                        />
+                    </Grid>
+
+                    <Grid item xs={12} md={6}>
+                        <PendingCertifications
+                            certifications={
+                                stats.pending_certification_list || []
+                            }
                         />
                     </Grid>
 
@@ -158,7 +216,9 @@ function HRDashboard() {
             </Box>
 
         </Box>
+
     );
+
 }
 
 export default HRDashboard;
